@@ -1,7 +1,7 @@
 #pragma once
 #include "value.h"
 
-namespace jsun
+namespace trijson
 	{
 	namespace type
 		{
@@ -80,7 +80,6 @@ namespace jsun
 				inline NullValue()
 					:NullImplHolder(),
 					 Value( null_type, &(NullImplHolder::impl) ){};
-
 			};
 		
 		//-----------------------------------------------------------------------------------------//
@@ -102,7 +101,6 @@ namespace jsun
 				inline TrueValue()
 					:TrueImplHolder(),
 					 Value( bool_type, &(TrueImplHolder::impl) ){};
-
 			};
 
 		//-----------------------------------------------------------------------------------------//

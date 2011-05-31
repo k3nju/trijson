@@ -33,6 +33,7 @@ namespace jsun
 
 		const char *head = (uint8_t*)buf;
 		const char *foot = head + size;
+		
 		head = SkipWhiteSpace( head, foot );
 		if( head >= foot )
 			throw ParseException();
@@ -46,7 +47,6 @@ namespace jsun
 				
 				if( consumed != NULL )
 					*consumed = 4;
-				
 				return type::null_value_ptr_t( new type::NullValue() );
 				}
 
@@ -54,10 +54,9 @@ namespace jsun
 				{
 				if( foot - head < 4 || *(uint32_t*)head != *(int32_t*)"true" )
 					throw ParseException();
-				
+
 				if( consumed != NULL )
-					*consumed = 4;
-				
+					*consumed = 4;				
 				return type::true_value_ptr_t( new type::TrueValue() );
 				}
 				
@@ -65,10 +64,9 @@ namespace jsun
 				{
 				if( foot - head < 5 || *(uint32_t*)(head+1) != *(int32_t*)"alse" )
 					throw ParseException();
-				
+
 				if( consumed != NULL )
 					*consumed = 5;
-				
 				return type::false_value_ptr_t( new type::FalseValue() );
 				}
 
@@ -81,42 +79,48 @@ namespace jsun
 						( val == 0 ) ) && errno == ERANGE ) ||      // converted over buf range.
 					( endptr > (char*)foot ) )
 					throw ParseException();
-				
+
 				if( consumed != NULL )
 					*consumed = endptr - (char*)head;
-				
 				return type::number_value_ptr_t( new type::NumberValue( val ) );
 				}
 				
 			case '"':
 				{
 				const char *start = (const char*)head;
+				size_t strSize = 0;
+				
 				while( ++head < foot )
 					{
 					if( *head == '"' && *(head-1) != '\\' )
 						{
-						size_t strSize = (char*)head - strStart;
-						if( consumed != NULL ) *consumed = strSize + 2;
-						return type::string_value_ptr_t( new type::StringValue( strStart, strSize ) );
+						if( consumed != NULL )
+							*consumed = strSize;
+						return type::string_value_ptr_t( new type::StringValue( start+1, strSize-2 ) );
+						}
+					else if( *head == '\\' )
+						{
+						if( ++head < foot )
+							break;
+						
 						}
 
+					++strSize;
+					}
+					
 					++head;
 					}
-
 				throw ParseException();
 				}
 
 			case '[':
 				{
-				const char *arrayStart = (const char*)head;
+				const char *start = (const char*)head;
 				head = SkipWhiteSpace( head, foot );
 				if( head >= foot )
-					{
 					throw ParseException();
-					}
 				
 				type::array_value_ptr_t array( new type::ArrayValue() );
-				
 				while( ++head < foot )
 					{
 					size_t innerConsumed = 0;

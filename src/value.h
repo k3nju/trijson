@@ -5,7 +5,7 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 
-namespace jsun
+namespace trijson
 	{
 	namespace type
 		{
@@ -20,8 +20,6 @@ namespace jsun
 		typedef std::string string_t;
 		typedef std::vector<value_ptr_t> array_t;
 		typedef std::map<string_t, value_ptr_t> object_t;
-		struct CastException;
-		struct KeyException{};
 		
 		//-----------------------------------------------------------------------------------------//
 		// Enumeration of types

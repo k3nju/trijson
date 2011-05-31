@@ -1,10 +1,10 @@
 #pragma once
 #include <stdexcept>
 
-namespace speedyjson
+namespace trijson
 	{
 	//-----------------------------------------------------------------------------------------//
-	// Throws when invalid cast happend.
+	// Thrown when invalid cast happend.
 	struct CastException :public std::runtime_error
 		{
 			CastException( const char *msg,
@@ -20,7 +20,7 @@ namespace speedyjson
 		};
 
 	//-----------------------------------------------------------------------------------------//
-	// Throws when key is not found on an object value.
+	// Thrown when key is not found on an object value.
 	struct KeyException :public std::runtime_error
 		{
 			KeyException( const char *key )
@@ -28,7 +28,7 @@ namespace speedyjson
 		};
 	
 	//-----------------------------------------------------------------------------------------//
-	// Throws when parse error happend.
+	// Thrown when parse error happend.
 	struct ParseException :public std::runtime_error
 		{
 			ParseException( const char *msg )
