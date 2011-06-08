@@ -87,21 +87,36 @@ namespace jsun
 				
 			case '"':
 				{
-				const char *start = (const char*)head;
+				char *copyStart = (char*)++head;
+				size_t tmpConsumed = 1;
 				string_t str;
-				while( ++head < foot )
+				
+				while( head < foot )
 					{
 					if( *(head-1) != '\\' && *head == '"' )
 						{
-						size_t strSize = head - start + 1;
-						if( consumed != NULL )
-							*consumed = strSize;
+						size_t strSize = head - copyStart;
+						if( strSize > 0 )
+							str.append( head, copyStart );
 						
+						if( consumed != NULL )
+							*consumed = tmpConsumed + 1;
+						return type::string_value_ptr_t( new StringValue( s ) );
 						}
 					else if( *head == '\\' )
 						{
 						if( ++head < foot )
 							break;
+
+						char c;
+						if( parseEscapeString( *head, &c ) == false )
+							break;
+
+						size_t strSize = head - copyStart;
+						if( strSize > 0 )
+							s.append( head, strSize );
+
+						copyStart = ++head;
 						}
 					}
 				}
