@@ -3,7 +3,7 @@
 //#include "value.h"
 #include "value_cpp.h"
 
-using namespace speedyjson::type;
+using namespace trijson::type;
 
 void NullTest()
 	{
@@ -47,7 +47,13 @@ void StringTest()
 	Value &v = s;
 	string_t str = "DDD";
 	v.Get( str );
-	assert( str == "ABC" );	
+	assert( str == "ABC" );
+	
+	StringValue s2( string_t("ABC") );
+	Value &v2 = s2;
+	string_t str2 = "DDD";
+	v.Get( str2 );
+	assert( str2 == "ABC" );
 	}
 
 void ArrayTest()
@@ -185,8 +191,6 @@ int main()
 	StringTest();
 	ArrayTest();
 	ObjectTest();
-
-	string_value_ptr_t v( new StringValue( "ABC", 3 ) );
 	
 	return 0;
 	}

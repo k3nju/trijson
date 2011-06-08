@@ -88,29 +88,22 @@ namespace jsun
 			case '"':
 				{
 				const char *start = (const char*)head;
-				size_t strSize = 0;
-				
+				string_t str;
 				while( ++head < foot )
 					{
-					if( *head == '"' && *(head-1) != '\\' )
+					if( *(head-1) != '\\' && *head == '"' )
 						{
+						size_t strSize = head - start + 1;
 						if( consumed != NULL )
 							*consumed = strSize;
-						return type::string_value_ptr_t( new type::StringValue( start+1, strSize-2 ) );
+						
 						}
 					else if( *head == '\\' )
 						{
 						if( ++head < foot )
 							break;
-						
 						}
-
-					++strSize;
 					}
-					
-					++head;
-					}
-				throw ParseException();
 				}
 
 			case '[':

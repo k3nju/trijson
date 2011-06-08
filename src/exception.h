@@ -8,15 +8,15 @@ namespace trijson
 	struct CastException :public std::runtime_error
 		{
 			CastException( const char *msg,
-						   value_type_t from,
-						   value_type_t to )
+						   type::value_type_t from,
+						   type::value_type_t to )
 				:std::runtime_error( msg ),
 				 typeFrom( from ),
 				 typeTo( to ){};
 			virtual ~CastException() throw(){};
 			
-			const value_type_t typeFrom;
-			const value_type_t typeTo;
+			const type::value_type_t typeFrom;
+			const type::value_type_t typeTo;
 		};
 
 	//-----------------------------------------------------------------------------------------//

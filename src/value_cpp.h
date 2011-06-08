@@ -1,5 +1,6 @@
 #pragma once
 #include "value.h"
+#include "exception.h"
 
 namespace trijson
 	{
@@ -17,7 +18,7 @@ namespace trijson
 
 		//-----------------------------------------------------------------------------------------//
 		// Implementation holder types
-		template < class > ImplHolder;
+		template < class > class ImplHolder;
 		typedef ImplHolder< NullValueImpl   > NullImplHolder;
 		typedef ImplHolder< TrueValueImpl   > TrueImplHolder;
 		typedef ImplHolder< FalseValueImpl  > FalseImplHolder;
@@ -151,6 +152,7 @@ namespace trijson
 			{
 			public:
 				inline StringValueImpl( const char *str, size_t size ):IValueImpl(), str_( str, size ){};
+				inline StringValueImpl( const string_t &str ):IValueImpl(), str_( str ){};
 				virtual void* GetValue(){ return &str_; };
 				
 			private:
@@ -163,6 +165,9 @@ namespace trijson
 			public:
 				inline StringValue( const char *str, size_t size )
 					:StringImplHolder( str, size ),
+					 Value( string_type, &(StringImplHolder::impl) ){};
+				inline StringValue( const string_t &str )
+					:StringImplHolder( str ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
 			};
 
@@ -217,7 +222,7 @@ namespace trijson
 			};
 		
 		//-----------------------------------------------------------------------------------------//
-		void ObjectValue::void Insert( const value_ptr_t key, value_ptr_t value )
+		void ObjectValue::Insert( const value_ptr_t key, value_ptr_t value )
 			{
 			string_t k;
 			if( key->Get( k ) == false )
@@ -231,7 +236,7 @@ namespace trijson
 			{
 			object_t::iterator iter = GetObject()->find( key );
 			if( iter == GetObject()->end() )
-				throw KeyException();
+				throw KeyException( key.c_str() );
 			
 			return iter->second;
 			}
