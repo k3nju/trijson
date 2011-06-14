@@ -23,7 +23,7 @@ namespace trijson
 	// Thrown when key is not found on an object value.
 	struct KeyException :public std::runtime_error
 		{
-			KeyException( const char *key )
+			explicit KeyException( const char *key )
 				:std::runtime_error( key ){};
 		};
 	
@@ -31,7 +31,9 @@ namespace trijson
 	// Thrown when parse error happend.
 	struct ParseException :public std::runtime_error
 		{
-			ParseException( const char *msg )
+			explicit ParseException( const char *msg )
 				:std::runtime_error( msg ){};
+			ParseException( const char *msg, size_t size )
+				:std::runtime_error( std::string( msg, size ) ){};
 		};
 	}

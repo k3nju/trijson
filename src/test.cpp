@@ -189,8 +189,8 @@ int main()
 	FalseTest();
 	NumberTest();
 	StringTest();
-	ArrayTest();
-	ObjectTest();
+	//ArrayTest();
+	//ObjectTest();
 	
 	return 0;
 	}

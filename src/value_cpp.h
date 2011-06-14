@@ -130,7 +130,7 @@ namespace trijson
 		class NumberValueImpl :public IValueImpl
 			{
 			public:
-				inline NumberValueImpl( number_t &num ):IValueImpl(), number_( num ){};
+				inline explicit NumberValueImpl( number_t &num ):IValueImpl(), number_( num ){};
 				virtual void* GetValue(){ return &number_; };
 
 			private:
@@ -141,7 +141,7 @@ namespace trijson
 						   public Value
 			{
 			public:
-				inline NumberValue( number_t num )
+				inline explicit NumberValue( number_t num )
 					:NumberImplHolder( num ),
 					 Value( number_type, &(NumberImplHolder::impl) ){}
 			};
@@ -152,7 +152,7 @@ namespace trijson
 			{
 			public:
 				inline StringValueImpl( const char *str, size_t size ):IValueImpl(), str_( str, size ){};
-				inline StringValueImpl( const string_t &str ):IValueImpl(), str_( str ){};
+				inline explicit  StringValueImpl( const string_t &str ):IValueImpl(), str_( str ){};
 				virtual void* GetValue(){ return &str_; };
 				
 			private:
@@ -166,7 +166,7 @@ namespace trijson
 				inline StringValue( const char *str, size_t size )
 					:StringImplHolder( str, size ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
-				inline StringValue( const string_t &str )
+				inline explicit StringValue( const string_t &str )
 					:StringImplHolder( str ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
 			};

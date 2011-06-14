@@ -1,4 +1,4 @@
-#include "jsonsp.h"
+#include "trijson.h"
 #include "value.h"
 #include "value_cpp.h"
 #include <string.h>
@@ -7,10 +7,9 @@
 
 int main()
 	{
-	using namespace speedyjson;
-	using namespace speedyjson::type;
+	using namespace trijson;
+	using namespace trijson::type;
 
-	/*
 	{
 	char buf[] = "null";
 	size_t consumed = 0;
@@ -43,18 +42,21 @@ int main()
 	assert( v->GetType() == type::number_type );
 	}
 
+
 	{
 	char buf[] = "\"ABC\\\"\"";
 	size_t consumed = 0;
 	value_ptr_t v = Parse( buf, strlen( buf ), &consumed );
+	printf( "%d\n", consumed );
 	assert( consumed == 7 );
 	assert( v->GetType() == type::string_type );
 	string_t s;
 	v->Get( s );
+	puts( s.c_str() );
 	assert( s == "ABC\\\"" );
 	}
-	*/
-	
+
+	/*
 	{
 	char buf[] = "[null,true ]";
 	size_t consumed = 0;
@@ -85,6 +87,7 @@ int main()
 	o["str"]->Get( num );
 	assert( num == 123 );
 	}
+	*/
 
 	return 0;
 	}

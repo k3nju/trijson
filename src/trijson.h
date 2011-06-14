@@ -8,10 +8,10 @@
 #include "value_cpp.h"
 #include <stdio.h>
 
-namespace jsun
+namespace trijson
 	{
 	//-----------------------------------------------------------------------------------------//
-	uint8_t* SkipWhiteSpace( uint8_t *head, uint8_t *foot )
+	inline const char* SkipWhiteSpace( const char *head, const char *foot )
 		{
 		while( head < foot &&
 			   ( *head == '\x20' ||
@@ -26,24 +26,59 @@ namespace jsun
 		}
 
 	//-----------------------------------------------------------------------------------------//
+	inline bool ParseEscapeString( char in, char *out )
+	{
+	switch( in )
+		{
+		case 'b':
+			*out = '\b';
+			break;
+		case 'f':
+			*out = '\f';
+			break;
+		case 'n':
+			*out = '\n';
+			break;
+		case 'r':
+			*out = '\r';
+			break;
+
+		case 't':
+			*out = '\t';
+			break;
+			
+		case '"':
+		case '/':
+		case '\\':
+			*out = in;
+			break;
+
+		default:
+			return false;
+		}
+
+	return true;
+	}
+
+	//-----------------------------------------------------------------------------------------//
 	type::value_ptr_t Parse( const char *buf, size_t size, size_t *consumed )
 		{
 		if( buf == NULL || size == 0 )
-			throw ParseException();
+			throw ParseException( "No buffer to parse" );
 
-		const char *head = (uint8_t*)buf;
+		const char *head = (const char*)buf;
 		const char *foot = head + size;
 		
 		head = SkipWhiteSpace( head, foot );
 		if( head >= foot )
-			throw ParseException();
+			throw ParseException( "No data to parse" );
 		
 		switch( *head )
 			{
 			case 'n':
 				{
 				if( foot - head < 4 || *(uint32_t*)head != *(int32_t*)"null" )
-					throw ParseException();
+					throw ParseException( head, foot - head );
 				
 				if( consumed != NULL )
 					*consumed = 4;
@@ -53,7 +88,7 @@ namespace jsun
 			case 't':
 				{
 				if( foot - head < 4 || *(uint32_t*)head != *(int32_t*)"true" )
-					throw ParseException();
+					throw ParseException( head, foot - head );
 
 				if( consumed != NULL )
 					*consumed = 4;				
@@ -63,7 +98,7 @@ namespace jsun
 			case 'f':
 				{
 				if( foot - head < 5 || *(uint32_t*)(head+1) != *(int32_t*)"alse" )
-					throw ParseException();
+					throw ParseException( head, foot - head );
 
 				if( consumed != NULL )
 					*consumed = 5;
@@ -78,7 +113,7 @@ namespace jsun
 					( ( ( val == HUGE_VALF || val == HUGE_VALL ) || // overflow/underflow happend.
 						( val == 0 ) ) && errno == ERANGE ) ||      // converted over buf range.
 					( endptr > (char*)foot ) )
-					throw ParseException();
+					throw ParseException( head, foot - head );
 
 				if( consumed != NULL )
 					*consumed = endptr - (char*)head;
@@ -87,46 +122,60 @@ namespace jsun
 				
 			case '"':
 				{
-				char *copyStart = (char*)++head;
-				size_t tmpConsumed = 1;
-				string_t str;
+				const char *parseStart = head;
+				const char *copyStart = (char*)++head;
+				type::string_t str;
 				
 				while( head < foot )
 					{
 					if( *(head-1) != '\\' && *head == '"' )
 						{
 						size_t strSize = head - copyStart;
+						for( size_t i = 0; i < strSize; ++i )
+							{
+							printf( "%c\n", *(copyStart+i) );
+							}
+						
 						if( strSize > 0 )
-							str.append( head, copyStart );
+							str.append( head, strSize );
 						
 						if( consumed != NULL )
-							*consumed = tmpConsumed + 1;
-						return type::string_value_ptr_t( new StringValue( s ) );
+							*consumed = ++head - parseStart;
+						return type::string_value_ptr_t( new type::StringValue( str ) );
 						}
 					else if( *head == '\\' )
 						{
-						if( ++head < foot )
+						if( ++head > foot )
 							break;
 
 						char c;
-						if( parseEscapeString( *head, &c ) == false )
-							break;
+						if( ParseEscapeString( *head, &c ) == false )
+							throw ParseException( head, foot - head );
 
 						size_t strSize = head - copyStart;
+						for( size_t i = 0; i < strSize; ++i )
+							{
+							printf( "%c\n", *(copyStart+i) );
+							}
 						if( strSize > 0 )
-							s.append( head, strSize );
+							str.append( head, strSize );
 
-						copyStart = ++head;
+						copyStart = head + 1;
 						}
+
+					++head;
 					}
+
+				throw ParseException( "Insufficient buffer" );
 				}
 
+				/*
 			case '[':
 				{
 				const char *start = (const char*)head;
 				head = SkipWhiteSpace( head, foot );
 				if( head >= foot )
-					throw ParseException();
+					throw ParseException( "Invalid JSON" );
 				
 				type::array_value_ptr_t array( new type::ArrayValue() );
 				while( ++head < foot )
@@ -158,7 +207,7 @@ namespace jsun
 						}
 					}
 				
-				throw ParseException();
+				throw ParseException( "Invalid JSON" );
 				}
 
 			case '{':
@@ -167,7 +216,7 @@ namespace jsun
 				head = SkipWhiteSpace( head, foot );
 				if( head >= foot )
 					{
-					throw ParseException();
+					throw ParseException( "Invalid JSON" );
 					}
 
 				type::object_value_ptr_t object( new type::ObjectValue() );
@@ -223,10 +272,11 @@ namespace jsun
 						}
 					}
 
-				throw ParseException();
+				throw ParseException( "Invalid JSON" );
 				}
+				*/
 			}
 		
-		throw ParseException();
+		throw ParseException( "Invalid JSON" );
 		}
 	}
