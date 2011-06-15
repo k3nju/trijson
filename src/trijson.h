@@ -21,8 +21,8 @@ namespace trijson
 				 *head == '\xb'  ||
 				 *head == '\xc' ) )
 			++head;
-		
-		return head;
+
+		return head < foot ? head : NULL;
 		}
 
 	//-----------------------------------------------------------------------------------------//
@@ -131,13 +131,8 @@ namespace trijson
 					if( *(head-1) != '\\' && *head == '"' )
 						{
 						size_t strSize = head - copyStart;
-						for( size_t i = 0; i < strSize; ++i )
-							{
-							printf( "%c\n", *(copyStart+i) );
-							}
-						
 						if( strSize > 0 )
-							str.append( head, strSize );
+							str.append( copyStart, strSize );
 						
 						if( consumed != NULL )
 							*consumed = ++head - parseStart;
@@ -148,17 +143,14 @@ namespace trijson
 						if( ++head > foot )
 							break;
 
+						size_t strSize = head - copyStart;
+						if( strSize > 0 )
+							str.append( copyStart, strSize );
+
 						char c;
 						if( ParseEscapeString( *head, &c ) == false )
 							throw ParseException( head, foot - head );
-
-						size_t strSize = head - copyStart;
-						for( size_t i = 0; i < strSize; ++i )
-							{
-							printf( "%c\n", *(copyStart+i) );
-							}
-						if( strSize > 0 )
-							str.append( head, strSize );
+						str.push_back( c );
 
 						copyStart = head + 1;
 						}
