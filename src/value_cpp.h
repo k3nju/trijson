@@ -1,4 +1,5 @@
 #pragma once
+#include <sstream>
 #include "value.h"
 #include "exception.h"
 
@@ -81,6 +82,8 @@ namespace trijson
 				inline NullValue()
 					:NullImplHolder(),
 					 Value( null_type, &(NullImplHolder::impl) ){};
+
+				virtual std::string Dump() const { return "NULL"; };
 			};
 		
 		//-----------------------------------------------------------------------------------------//
@@ -102,6 +105,8 @@ namespace trijson
 				inline TrueValue()
 					:TrueImplHolder(),
 					 Value( bool_type, &(TrueImplHolder::impl) ){};
+
+				virtual std::string Dump() const { return "true"; };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -123,6 +128,8 @@ namespace trijson
 				inline FalseValue()
 					:FalseImplHolder(),
 					 Value( bool_type, &(FalseImplHolder::impl) ){}
+
+				virtual std::string Dump() const { return "false"; };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -144,6 +151,8 @@ namespace trijson
 				inline explicit NumberValue( number_t num )
 					:NumberImplHolder( num ),
 					 Value( number_type, &(NumberImplHolder::impl) ){}
+
+				//virtual std::string Dump() const { return  };
 			};
 		
 		//-----------------------------------------------------------------------------------------//

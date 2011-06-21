@@ -57,7 +57,8 @@ namespace trijson
 				inline value_type_t GetType(){ return type_; };
 				
 				// Primary member function template.
-				template < class T > bool Get( T &out );
+				template < class T > bool Get( T &out ) const;
+				virtual std::string Dump() const = 0;
 				
 			protected:
 				value_type_t type_;
