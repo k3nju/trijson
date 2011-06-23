@@ -42,10 +42,13 @@ namespace trijson
 				virtual ~IValueImpl(){};
 				
 				// GetValue() return pointer to actual data.
-				virtual void* GetValue() const = 0;
+				virtual const void* GetValue() const = 0;
 				// Sugar.
 				template < class T >
-				T* Cast() const { return (T*)GetValue(); };
+				const T* Cast() const { return (T*)GetValue(); };
+
+				// Helper member function for non-const.
+				void* GetValue(){ return const_cast<void*>(static_cast<const IValueImpl*>(this)->GetValue()); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -68,7 +71,7 @@ namespace trijson
 		//-----------------------------------------------------------------------------------------//
 		// Convertion functions for each types.
 #define DEF_GET( T )												\
-		template <> bool Value::Get<T##_t>( T##_t& out )			\
+		template <> bool Value::Get<T##_t>( T##_t& out ) const		\
 			{														\
 			if( type_ != T##_type )									\
 				return false;										\

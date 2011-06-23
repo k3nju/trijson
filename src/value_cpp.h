@@ -69,7 +69,7 @@ namespace trijson
 			{
 			public:
 				inline NullValueImpl():IValueImpl(), null_( NULL ){};
-				virtual void* GetValue() const { return &null_; };
+				virtual const void* GetValue() const { return &null_; };
 
 			private:
 				const char *null_;
@@ -92,7 +92,7 @@ namespace trijson
 			{
 			public:
 				inline TrueValueImpl():IValueImpl(), true_( true ){};
-				virtual void* GetValue() const { return &true_; };
+				virtual const void* GetValue() const { return &true_; };
 
 			private:
 				bool true_;
@@ -115,7 +115,7 @@ namespace trijson
 			{
 			public:
 				inline FalseValueImpl():IValueImpl(), false_( false ){};
-				virtual void* GetValue() const { return &false_; };
+				virtual const void* GetValue() const { return &false_; };
 
 			private:
 				bool false_;
@@ -138,7 +138,7 @@ namespace trijson
 			{
 			public:
 				inline explicit NumberValueImpl( number_t &num ):IValueImpl(), number_( num ){};
-				virtual void* GetValue() const { return &number_; };
+				virtual const void* GetValue() const { return &number_; };
 
 			private:
 				number_t number_;
@@ -154,7 +154,7 @@ namespace trijson
 				virtual std::string Dump() const
 					{
 					std::stringstream ss;
-					ss << *(number_t*)GetValue();
+					ss << *(number_t*)(NumberImplHolder::impl.GetValue());
 					return ss.str();
 					}
 			};
@@ -166,7 +166,7 @@ namespace trijson
 			public:
 				inline StringValueImpl( const char *str, size_t size ):IValueImpl(), str_( str, size ){};
 				inline explicit  StringValueImpl( const string_t &str ):IValueImpl(), str_( str ){};
-				virtual void* GetValue() const { return &str_; };
+				virtual const void* GetValue() const { return &str_; };
 				
 			private:
 				string_t str_;
@@ -182,7 +182,7 @@ namespace trijson
 				inline explicit StringValue( const string_t &str )
 					:StringImplHolder( str ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
-				virtual std::string Dump() const { return *GetValue(); };
+				virtual std::string Dump() const { return *(string_t*)(StringImplHolder::impl.GetValue()); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ namespace trijson
 			{
 			public:
 				inline ArrayValueImpl():IValueImpl(){};
-				virtual void* GetValue() const { return &array_; };
+				virtual const void* GetValue() const { return &array_; };
 				
 			private:
 				array_t array_;
@@ -213,7 +213,7 @@ namespace trijson
 					array_t::const_iterator end   = GetArray()->end();
 					for(; begin != end; ++begin )
 						{
-						ss << (*begn)->Dump();
+						ss << (*begin)->Dump();
 						if( begin + 1 != end )
 							ss << ",";
 						}
@@ -223,7 +223,8 @@ namespace trijson
 					}
 
 			private:
-				inline array_t* GetArray() const { return ArrayImplHolder::impl.Cast< array_t >(); };
+				inline const array_t* GetArray() const { return ArrayImplHolder::impl.Cast< array_t >(); };
+				inline array_t* GetArray(){ return const_cast< ArrayValue* >( static_cast< const ArrayValue* >( this )->GetArray() ); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -232,7 +233,7 @@ namespace trijson
 			{
 			public:
 				inline ObjectValueImpl():IValueImpl(){};
-				virtual void* GetValue() const { return &object_; };
+				virtual const void* GetValue() const { return &object_; };
 				
 			private:
 				object_t object_;
@@ -250,18 +251,21 @@ namespace trijson
 					{
 					std::stringstream ss;
 					ss << "{";
-					object_t::iterator begin = GetObject()->begin();
-					object_t::iterator end   = GetObject()->end();
+					object_t::const_iterator begin = GetObject()->begin();
+					object_t::const_iterator end   = GetObject()->end();
 					for(; begin != end; ++begin )
 						{
-						ss << "\"" << (*begin)->first->Dump() << "\":" << (*begin)->first->Dump();
+						ss << "\"" << begin->first << "\":" << begin->second->Dump();
 						if( begin + 1 != end )
 							ss << ",";
 						}
+					ss << "}";
+					return ss.str();
 					}
 				
 			private:
-				object_t* GetObject(){ return ObjectImplHolder::impl.Cast< object_t >(); };
+				inline const object_t* GetObject() const { return ObjectImplHolder::impl.Cast< object_t >(); };
+				inline object_t* GetObject(){ return const_cast< object_t* >( static_cast< const ObjectValue* >(this)->GetObject() ); };
 			};
 		
 		//-----------------------------------------------------------------------------------------//
