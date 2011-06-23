@@ -42,10 +42,10 @@ namespace trijson
 				virtual ~IValueImpl(){};
 				
 				// GetValue() return pointer to actual data.
-				virtual void* GetValue() = 0;
+				virtual void* GetValue() const = 0;
 				// Sugar.
 				template < class T >
-				T* Cast(){ return (T*)GetValue(); };
+				T* Cast() const { return (T*)GetValue(); };
 			};
 
 		//-----------------------------------------------------------------------------------------//

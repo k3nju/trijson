@@ -69,7 +69,7 @@ namespace trijson
 			{
 			public:
 				inline NullValueImpl():IValueImpl(), null_( NULL ){};
-				virtual void* GetValue(){ return &null_; };
+				virtual void* GetValue() const { return &null_; };
 
 			private:
 				const char *null_;
@@ -92,7 +92,7 @@ namespace trijson
 			{
 			public:
 				inline TrueValueImpl():IValueImpl(), true_( true ){};
-				virtual void* GetValue(){ return &true_; };
+				virtual void* GetValue() const { return &true_; };
 
 			private:
 				bool true_;
@@ -115,7 +115,7 @@ namespace trijson
 			{
 			public:
 				inline FalseValueImpl():IValueImpl(), false_( false ){};
-				virtual void* GetValue(){ return &false_; };
+				virtual void* GetValue() const { return &false_; };
 
 			private:
 				bool false_;
@@ -138,7 +138,7 @@ namespace trijson
 			{
 			public:
 				inline explicit NumberValueImpl( number_t &num ):IValueImpl(), number_( num ){};
-				virtual void* GetValue(){ return &number_; };
+				virtual void* GetValue() const { return &number_; };
 
 			private:
 				number_t number_;
@@ -151,8 +151,12 @@ namespace trijson
 				inline explicit NumberValue( number_t num )
 					:NumberImplHolder( num ),
 					 Value( number_type, &(NumberImplHolder::impl) ){}
-
-				//virtual std::string Dump() const { return  };
+				virtual std::string Dump() const
+					{
+					std::stringstream ss;
+					ss << *(number_t*)GetValue();
+					return ss.str();
+					}
 			};
 		
 		//-----------------------------------------------------------------------------------------//
@@ -162,7 +166,7 @@ namespace trijson
 			public:
 				inline StringValueImpl( const char *str, size_t size ):IValueImpl(), str_( str, size ){};
 				inline explicit  StringValueImpl( const string_t &str ):IValueImpl(), str_( str ){};
-				virtual void* GetValue(){ return &str_; };
+				virtual void* GetValue() const { return &str_; };
 				
 			private:
 				string_t str_;
@@ -178,6 +182,7 @@ namespace trijson
 				inline explicit StringValue( const string_t &str )
 					:StringImplHolder( str ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
+				virtual std::string Dump() const { return *GetValue(); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -186,7 +191,7 @@ namespace trijson
 			{
 			public:
 				inline ArrayValueImpl():IValueImpl(){};
-				virtual void* GetValue(){ return &array_; };
+				virtual void* GetValue() const { return &array_; };
 				
 			private:
 				array_t array_;
@@ -200,9 +205,25 @@ namespace trijson
 					:ArrayImplHolder(),
 					 Value( array_type, &(ArrayImplHolder::impl) ){};
 				inline void Append( value_ptr_t value ){ GetArray()->push_back( value ); };
+				virtual std::string Dump() const
+					{
+					std::stringstream ss;
+					ss << "[";
+					array_t::const_iterator begin = GetArray()->begin();
+					array_t::const_iterator end   = GetArray()->end();
+					for(; begin != end; ++begin )
+						{
+						ss << (*begn)->Dump();
+						if( begin + 1 != end )
+							ss << ",";
+						}
+					ss << "]";
+
+					return ss.str();
+					}
 
 			private:
-				inline array_t* GetArray(){ return ArrayImplHolder::impl.Cast< array_t >(); };
+				inline array_t* GetArray() const { return ArrayImplHolder::impl.Cast< array_t >(); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -211,7 +232,7 @@ namespace trijson
 			{
 			public:
 				inline ObjectValueImpl():IValueImpl(){};
-				virtual void* GetValue(){ return &object_; };
+				virtual void* GetValue() const { return &object_; };
 				
 			private:
 				object_t object_;
@@ -225,6 +246,19 @@ namespace trijson
 							  Value( array_type, &(ObjectImplHolder::impl) ){};
 				void Insert( const value_ptr_t key, value_ptr_t value );
 				value_ptr_t operator[] ( const std::string &key );
+				virtual std::string Dump() const
+					{
+					std::stringstream ss;
+					ss << "{";
+					object_t::iterator begin = GetObject()->begin();
+					object_t::iterator end   = GetObject()->end();
+					for(; begin != end; ++begin )
+						{
+						ss << "\"" << (*begin)->first->Dump() << "\":" << (*begin)->first->Dump();
+						if( begin + 1 != end )
+							ss << ",";
+						}
+					}
 				
 			private:
 				object_t* GetObject(){ return ObjectImplHolder::impl.Cast< object_t >(); };
