@@ -164,7 +164,7 @@ namespace trijson
 			case '[':
 				{
 				const char *parseStart = head;
-				type::array_t arr;
+				type::array_value_ptr_t arrayVal( new type::ArrayValue() );
 				
 				while( head < foot )
 					{
@@ -175,7 +175,7 @@ namespace trijson
 
 					size_t elemConsumed = 0;
 					type::value_ptr_t val = Parse( head, foot - head, &elemConsumed );
-					arr.push_back( val );
+					arrayVal->Append( val );
 					head +=elemConsumed;
 					head = SkipWhiteSpace( head, foot );
 					
@@ -186,7 +186,7 @@ namespace trijson
 						{
 						if( consumed != NULL )
 							*consumed = (++head - parseStart);
-						return type::array_value_ptr_t( new type::ArrayValue( arr ) );
+						return arrayVal;
 						}
 					else if( *head == ',' )
 						continue;
@@ -197,72 +197,53 @@ namespace trijson
 				throw ParseException( "Invalid JSON" );
 				}
 
-				/*
 			case '{':
 				{
-				const char *start = (const char*)head;
-				head = SkipWhiteSpace( head, foot );
-				if( head >= foot )
-					{
-					throw ParseException( "Invalid JSON" );
-					}
+				const char *parseStart = head;
+				type::object_t object;
 
-				type::object_value_ptr_t object( new type::ObjectValue() );
-				
-				while( ++head < foot )
+				while( head < foot )
 					{
-					size_t innerConsumed = 0;
-					type::value_ptr_t k = Parse( (const char*)head, foot - head, &innerConsumed );
-					head += innerConsumed;
-					assert( head <= foot );
-
+					++head;
+					head = SkipWhiteSpace( head, foot );
+					if( head == NULL )
+						throw ParseException( "Invalid JSON" );
+					
+					size_t keyConsumed = 0;
+					type::value_ptr_t key = Parse( head, foot - head, &keyConsumed );
+					type::string_t strKey;
+					if( key->Get( strKey ) == false )
+						throw ParseException( "Invalid JSON" );
+					head += keyConsumed;
 					head = SkipWhiteSpace( head, foot );
 					
-					if( head >= foot )
-						{
-						break;
-						}
-					if( *head != ':' )
-						{
-						break;
-						}
-
+					if( head == NULL || *head != ':' )
+						throw ParseException( "Invalid JSON" );
+					
+					size_t valConsumed = 0;
+					type::value_ptr_t val = Parse( head, foot - head, &valConsumed );
+					head += valConsumed;
 					head = SkipWhiteSpace( head, foot );
-					
-					if( head >= foot )
-						{
-						break;
-						}
-					
-					innerConsumed = 0;
-					type::value_ptr_t v = Parse( (const char*)head, foot - head, &innerConsumed );
-					head += innerConsumed;
-					assert( head <= foot );
 
-					object->Insert( k, v );
+					if( head == NULL )
+						throw ParseException( "Invalid JSON" );
 
-					head = SkipWhiteSpace( head, foot ); 
-					
-					if( head >= foot )
-						{
-						break;
-						}
-					
+					object.insert( std::make_pair( strKey, val ) );
+
 					if( *head == '}' )
 						{
-						if( consumed != NULL ) *consumed = (const char*)++head - start;
-						return object;
+						if( consumed != NULL )
+							*consumed = (++head - parseStart);
+						return type::object_value_ptr_t( new type::ObjectValue( object ) );
 						}
-
-					if( *head != ',' )
-						{
-						break;
-						}
+					else if( *head == ',' )
+						continue;
+					else
+						throw ParseException( "Invalid JSON" );
 					}
-
+					
 				throw ParseException( "Invalid JSON" );
 				}
-				*/
 			}
 		
 		throw ParseException( "Invalid JSON" );

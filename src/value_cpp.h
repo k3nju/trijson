@@ -190,6 +190,7 @@ namespace trijson
 		class ArrayValueImpl :public IValueImpl
 			{
 			public:
+				inline ArrayValueImpl():IValueImpl(), array_(){};
 				inline ArrayValueImpl( const array_t &array ):IValueImpl(), array_( array ){};
 				virtual const void* GetValue() const { return &array_; };
 				
@@ -201,6 +202,9 @@ namespace trijson
 						  public Value
 			{
 			public:
+				inline ArrayValue()
+					:ArrayImplHolder(),
+					 Value( array_type, &(ArrayImplHolder::impl) ){};
 				inline ArrayValue( const array_t &array )
 					:ArrayImplHolder( array ),
 					 Value( array_type, &(ArrayImplHolder::impl) ){};
@@ -233,6 +237,7 @@ namespace trijson
 			{
 			public:
 				inline ObjectValueImpl():IValueImpl(){};
+				inline ObjectValueImpl( const object_t &object ):IValueImpl(), object_( object ){};
 				virtual const void* GetValue() const { return &object_; };
 				
 			private:
@@ -243,8 +248,12 @@ namespace trijson
 						   public Value
 			{
 			public:
-				ObjectValue():ObjectImplHolder(),
-							  Value( array_type, &(ObjectImplHolder::impl) ){};
+				inline ObjectValue()
+					:ObjectImplHolder(),
+					 Value( object_type, &(ObjectImplHolder::impl) ){};
+				inline ObjectValue( const object_t &object )
+					:ObjectImplHolder( object ),
+					 Value( object_type, &(ObjectImplHolder::impl) ){};
 				void Insert( const value_ptr_t key, value_ptr_t value );
 				value_ptr_t operator[] ( const std::string &key );
 				virtual std::string Dump() const

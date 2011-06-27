@@ -78,7 +78,6 @@ int main()
 	assert( d == 1 );
 	}
 
-	/*
 	{
 	char buf[] = "{\"str\" : 123 }";
 	size_t consumed = 0;
@@ -92,7 +91,6 @@ int main()
 	o["str"]->Get( num );
 	assert( num == 123 );
 	}
-	*/
 
 	return 0;
 	}
