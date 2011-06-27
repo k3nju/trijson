@@ -47,18 +47,15 @@ int main()
 	char buf[] = "\"ABC\\\"\"";
 	size_t consumed = 0;
 	value_ptr_t v = Parse( buf, strlen( buf ), &consumed );
-	printf( "%d\n", consumed );
 	assert( consumed == 7 );
 	assert( v->GetType() == type::string_type );
 	string_t s;
 	v->Get( s );
-	puts( s.c_str() );
 	assert( s == "ABC\\\"" );
 	}
 
-	/*
 	{
-	char buf[] = "[null,true ]";
+	char buf[] = "[null,true , false, 1]";
 	size_t consumed = 0;
 	value_ptr_t v = Parse( buf, strlen( buf ), &consumed );
 	assert( consumed == strlen( buf ) );
@@ -72,8 +69,16 @@ int main()
 	bool t;
 	arr[1]->Get( t );
 	assert( t == true );
+
+	arr[2]->Get( t );
+	assert( t == false );
+
+	double d;
+	arr[3]->Get( d );
+	assert( d == 1 );
 	}
 
+	/*
 	{
 	char buf[] = "{\"str\" : 123 }";
 	size_t consumed = 0;

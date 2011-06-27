@@ -158,50 +158,46 @@ namespace trijson
 					++head;
 					}
 
-				throw ParseException( "Insufficient buffer" );
+				throw ParseException( "Insufficient JSON" );
 				}
 
-				/*
 			case '[':
 				{
-				const char *start = (const char*)head;
-				head = SkipWhiteSpace( head, foot );
-				if( head >= foot )
-					throw ParseException( "Invalid JSON" );
+				const char *parseStart = head;
+				type::array_t arr;
 				
-				type::array_value_ptr_t array( new type::ArrayValue() );
-				while( ++head < foot )
+				while( head < foot )
 					{
-					size_t innerConsumed = 0;
-					type::value_ptr_t v = Parse( (const char*)head, foot - head, &innerConsumed );
-					array->Append( v );
-					head += innerConsumed;
-					assert( head <= foot );
+					++head;
+					head = SkipWhiteSpace( head, foot );
+					if( head == NULL )
+						throw ParseException( "Insufficient JSON" );
 
+					size_t elemConsumed = 0;
+					type::value_ptr_t val = Parse( head, foot - head, &elemConsumed );
+					arr.push_back( val );
+					head +=elemConsumed;
 					head = SkipWhiteSpace( head, foot );
 					
-					if( head >= foot )
+					if( head == NULL )
+						throw ParseException( "Insufficient JSON" );
+					
+					if( *head == ']' )
 						{
-						break;
-						}
-					else if( *head == ']' )
-						{
-						if( consumed != NULL ) *consumed = (const char*)++head - arrayStart;
-						return array;
+						if( consumed != NULL )
+							*consumed = (++head - parseStart);
+						return type::array_value_ptr_t( new type::ArrayValue( arr ) );
 						}
 					else if( *head == ',' )
-						{
 						continue;
-						}
 					else
-						{
-						break;
-						}
+						throw ParseException( "Invalid JSON" );
 					}
-				
+
 				throw ParseException( "Invalid JSON" );
 				}
 
+				/*
 			case '{':
 				{
 				const char *start = (const char*)head;

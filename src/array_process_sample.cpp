@@ -64,7 +64,7 @@ int main()
 				{
 				double d = 0.0;
 				printf( "%d ", (*iter)->Get( d ) );
-				printf( "%d\n", d );
+				printf( "%f\n", d );
 				}
 			}
 		else

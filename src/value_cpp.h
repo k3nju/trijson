@@ -190,7 +190,7 @@ namespace trijson
 		class ArrayValueImpl :public IValueImpl
 			{
 			public:
-				inline ArrayValueImpl():IValueImpl(){};
+				inline ArrayValueImpl( const array_t &array ):IValueImpl(), array_( array ){};
 				virtual const void* GetValue() const { return &array_; };
 				
 			private:
@@ -201,8 +201,8 @@ namespace trijson
 						  public Value
 			{
 			public:
-				inline ArrayValue()
-					:ArrayImplHolder(),
+				inline ArrayValue( const array_t &array )
+					:ArrayImplHolder( array ),
 					 Value( array_type, &(ArrayImplHolder::impl) ){};
 				inline void Append( value_ptr_t value ){ GetArray()->push_back( value ); };
 				virtual std::string Dump() const
@@ -224,7 +224,7 @@ namespace trijson
 
 			private:
 				inline const array_t* GetArray() const { return ArrayImplHolder::impl.Cast< array_t >(); };
-				inline array_t* GetArray(){ return const_cast< ArrayValue* >( static_cast< const ArrayValue* >( this )->GetArray() ); };
+				inline array_t* GetArray(){ return const_cast< array_t* >( static_cast< const ArrayValue* >( this )->GetArray() ); };
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -253,12 +253,12 @@ namespace trijson
 					ss << "{";
 					object_t::const_iterator begin = GetObject()->begin();
 					object_t::const_iterator end   = GetObject()->end();
-					for(; begin != end; ++begin )
-						{
+
+					if( begin++ != end )
 						ss << "\"" << begin->first << "\":" << begin->second->Dump();
-						if( begin + 1 != end )
-							ss << ",";
-						}
+					for(; begin != end; ++begin )
+						ss << "," << "\"" << begin->first << "\":" << begin->second->Dump();
+					
 					ss << "}";
 					return ss.str();
 					}
