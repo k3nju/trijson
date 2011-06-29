@@ -42,7 +42,7 @@ int main()
 	assert( v->GetType() == type::number_type );
 	}
 
-
+	/*
 	{
 	char buf[] = "\"ABC\\\"\"";
 	size_t consumed = 0;
@@ -92,5 +92,9 @@ int main()
 	assert( num == 123 );
 	}
 
+	*/
+
 	return 0;
 	}
+
+

@@ -31,9 +31,10 @@ namespace trijson
 	// Thrown when parse error happend.
 	struct ParseException :public std::runtime_error
 		{
-			explicit ParseException( const char *msg )
-				:std::runtime_error( msg ){};
-			ParseException( const char *msg, size_t size )
-				:std::runtime_error( std::string( msg, size ) ){};
+			inline ParseException( const char *msg )
+				:std::runtime_error( msg ), line( 0 ){};
+			inline ParseException( const char *msg, unsigned int l )
+				:std::runtime_error( msg ), line( l ){};
+			unsigned int line;
 		};
 	}

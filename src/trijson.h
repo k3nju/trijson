@@ -11,20 +11,34 @@
 namespace trijson
 	{
 	//-----------------------------------------------------------------------------------------//
-	inline const char* SkipWhiteSpace( const char *head, const char *foot )
+	struct InputRange
 		{
-		while( head < foot &&
-			   ( *head == '\x20' ||
-				 *head == '\t'   ||
-				 *head == '\r'   ||
-				 *head == '\n'   ||
-				 *head == '\xb'  ||
-				 *head == '\xc' ) )
-			++head;
+			inline InputRange( const char *h, const char *f )
+				:begin( h ), end( f ), cur( h ), lineCount( 0 ){};
+			inline bool IsValid(){ return cur < end; };
+			inline bool SkipWhiteSpace()
+				{
+				while( cur <end &&
+					   ( *cur == '\x20' ||
+						 *cur == '\t'   ||
+						 *cur == '\r'   ||
+						 *cur == '\xb'  ||
+						 *cur == '\xc'  ||
+						 ( *cur == '\n' && ++lineCount ) ) )
+					++cur;
 
-		return head < foot ? head : NULL;
-		}
+				return IsValid();
+				}
+			inline size_t GetCurrentSize(){ return end - cur; };
+			inline size_t GetConsumedSize(){ return cur - begin; };
+			inline void Forward( size_t s ){ cur +=s; };
 
+			const char *begin;
+			const char *end;
+			const char *cur;
+			size_t lineCount;
+		};
+	
 	//-----------------------------------------------------------------------------------------//
 	inline bool ParseEscapeString( char in, char *out )
 	{
@@ -61,80 +75,68 @@ namespace trijson
 	}
 
 	//-----------------------------------------------------------------------------------------//
-	type::value_ptr_t Parse( const char *buf, size_t size, size_t *consumed )
+	type::value_ptr_t ParseImpl( InputRange &input )
 		{
-		if( buf == NULL || size == 0 )
-			throw ParseException( "No buffer to parse" );
-
-		const char *head = (const char*)buf;
-		const char *foot = head + size;
+		if( input.SkipWhiteSpace() == false )
+			throw ParseException( "Malformed JSON", 0 );
 		
-		head = SkipWhiteSpace( head, foot );
-		if( head >= foot )
-			throw ParseException( "No data to parse" );
-		
-		switch( *head )
+		switch( *input.cur )
 			{
 			case 'n':
 				{
-				if( foot - head < 4 || *(uint32_t*)head != *(int32_t*)"null" )
-					throw ParseException( head, foot - head );
-				
-				if( consumed != NULL )
-					*consumed = 4;
+				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(int32_t*)"null" )
+					throw ParseException( "null?", input.lineCount );
+
+				input.Forward( 4 );
 				return type::null_value_ptr_t( new type::NullValue() );
 				}
 
 			case 't':
 				{
-				if( foot - head < 4 || *(uint32_t*)head != *(int32_t*)"true" )
-					throw ParseException( head, foot - head );
+				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(int32_t*)"true" )
+					throw ParseException( "true?", input.lineCount );
 
-				if( consumed != NULL )
-					*consumed = 4;				
+				input.Forward( 4 );
 				return type::true_value_ptr_t( new type::TrueValue() );
 				}
 				
 			case 'f':
 				{
-				if( foot - head < 5 || *(uint32_t*)(head+1) != *(int32_t*)"alse" )
-					throw ParseException( head, foot - head );
+				if( input.GetCurrentSize() < 5 || *(uint32_t*)(input.cur+1) != *(int32_t*)"alse" )
+					throw ParseException( "false?", input.lineCount );
 
-				if( consumed != NULL )
-					*consumed = 5;
+				input.Forward( 5 );
 				return type::false_value_ptr_t( new type::FalseValue() );
 				}
-
+				
 			case '-':case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
 				{
 				char *endptr = NULL;
-				double val = strtod( head, &endptr );
-				if( ( val == 0 && endptr == (char*)head ) ||        // convertion didn't operated.
+				double val = strtod( input.cur, &endptr );
+				if( ( val == 0 && endptr == (char*)input.cur ) ||   // convertion didn't operated.
 					( ( ( val == HUGE_VALF || val == HUGE_VALL ) || // overflow/underflow happend.
 						( val == 0 ) ) && errno == ERANGE ) ||      // converted over buf range.
-					( endptr > (char*)foot ) )
-					throw ParseException( head, foot - head );
+					( endptr > (char*)input.end ) )
+					throw ParseException( "Invalid number", input.lineCount );
 
-				if( consumed != NULL )
-					*consumed = endptr - (char*)head;
+				input.Forward( endptr - input.cur );
 				return type::number_value_ptr_t( new type::NumberValue( val ) );
 				}
 				
 			case '"':
 				{
-				const char *parseStart = head;
-				const char *copyStart = (char*)++head;
+				const char *parseStart = input.cur;
+				const char *copyStart = (char*)++input.cur;
 				type::string_t str;
 				
-				while( head < foot )
+				while( input.IsValid() )
 					{
-					if( *(head-1) != '\\' && *head == '"' )
+					if( *(input.cur-1) != '\\' && *head == '"' )
 						{
-						size_t strSize = head - copyStart;
+						size_t strSize = input.cur - copyStart;
 						if( strSize > 0 )
 							str.append( copyStart, strSize );
 						
-						if( consumed != NULL )
 							*consumed = ++head - parseStart;
 						return type::string_value_ptr_t( new type::StringValue( str ) );
 						}
@@ -161,6 +163,7 @@ namespace trijson
 				throw ParseException( "Insufficient JSON" );
 				}
 
+				/*
 			case '[':
 				{
 				const char *parseStart = head;
@@ -169,7 +172,7 @@ namespace trijson
 				while( head < foot )
 					{
 					++head;
-					head = SkipWhiteSpace( head, foot );
+					head = SkipWhiteSpace( head, foot, &lineCount );
 					if( head == NULL )
 						throw ParseException( "Insufficient JSON" );
 
@@ -177,7 +180,7 @@ namespace trijson
 					type::value_ptr_t val = Parse( head, foot - head, &elemConsumed );
 					arrayVal->Append( val );
 					head +=elemConsumed;
-					head = SkipWhiteSpace( head, foot );
+					head = SkipWhiteSpace( head, foot, &lineCount );
 					
 					if( head == NULL )
 						throw ParseException( "Insufficient JSON" );
@@ -205,7 +208,7 @@ namespace trijson
 				while( head < foot )
 					{
 					++head;
-					head = SkipWhiteSpace( head, foot );
+					head = SkipWhiteSpace( head, foot, &lineCount );
 					if( head == NULL )
 						throw ParseException( "Invalid JSON" );
 					
@@ -215,7 +218,7 @@ namespace trijson
 					if( key->Get( strKey ) == false )
 						throw ParseException( "Invalid JSON" );
 					head += keyConsumed;
-					head = SkipWhiteSpace( head, foot );
+					head = SkipWhiteSpace( head, foot, &lineCount );
 					
 					if( head == NULL || *head != ':' )
 						throw ParseException( "Invalid JSON" );
@@ -223,7 +226,7 @@ namespace trijson
 					size_t valConsumed = 0;
 					type::value_ptr_t val = Parse( head, foot - head, &valConsumed );
 					head += valConsumed;
-					head = SkipWhiteSpace( head, foot );
+					head = SkipWhiteSpace( head, foot, &lineCount );
 
 					if( head == NULL )
 						throw ParseException( "Invalid JSON" );
@@ -245,7 +248,21 @@ namespace trijson
 				throw ParseException( "Invalid JSON" );
 				}
 			}
-		
+				*/
 		throw ParseException( "Invalid JSON" );
+		}
+	}
+
+	//-----------------------------------------------------------------------------------------//
+	type::value_ptr_t Parse( const char *buf, size_t size, size_t *consumed )
+		{
+		InputRange input( buf, buf + size );
+		type::value_ptr_t ret = ParseImpl( input );
+		if( consumed != NULL )
+			*consumed = input.GetConsumedSize();
+
+		printf( "%02x %d\n", *input.cur, input.GetConsumedSize() );
+		
+		return ret;
 		}
 	}
