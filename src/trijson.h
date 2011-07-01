@@ -40,31 +40,31 @@ namespace trijson
 		};
 	
 	//-----------------------------------------------------------------------------------------//
-	inline bool ParseEscapeString( char in, char *out )
+	inline bool ParseEscapeString( char in, char &out )
 	{
 	switch( in )
 		{
 		case 'b':
-			*out = '\b';
+			out = '\b';
 			break;
 		case 'f':
-			*out = '\f';
+			out = '\f';
 			break;
 		case 'n':
-			*out = '\n';
+			out = '\n';
 			break;
 		case 'r':
-			*out = '\r';
+			out = '\r';
 			break;
 
 		case 't':
-			*out = '\t';
+			out = '\t';
 			break;
 			
 		case '"':
 		case '/':
 		case '\\':
-			*out = in;
+			out = in;
 			break;
 
 		default:
@@ -125,79 +125,46 @@ namespace trijson
 				
 			case '"':
 				{
-				const char *parseStart = input.cur;
-				const char *copyStart = (char*)++input.cur;
+				++input.cur;
+				const char *copyStart = input.cur;
 				type::string_t str;
 				
 				while( input.IsValid() )
 					{
-					if( *(input.cur-1) != '\\' && *head == '"' )
+					if( *input.cur == '\\' )
 						{
-						size_t strSize = input.cur - copyStart;
-						if( strSize > 0 )
-							str.append( copyStart, strSize );
+						++input.cur;
+						if( input.IsValid() == false )
+							throw ParseException( "Invalid string", input.lineCount );
 						
-							*consumed = ++head - parseStart;
-						return type::string_value_ptr_t( new type::StringValue( str ) );
-						}
-					else if( *head == '\\' )
-						{
-						if( ++head > foot )
-							break;
-
-						size_t strSize = head - copyStart;
-						if( strSize > 0 )
-							str.append( copyStart, strSize );
-
-						char c;
-						if( ParseEscapeString( *head, &c ) == false )
-							throw ParseException( head, foot - head );
+						char c = '\0';
+						if( ParseEscapeString( *input.cur, c ) == false )
+							throw ParseException( "Invalid escape string", input.lineCount );
+						
+						if( input.cur - copyStart > 0 )
+							str.append( copyStart, input.cur - copyStart );
 						str.push_back( c );
 
-						copyStart = head + 1;
+						copyStart = input.cur + 1;
+						}
+					else if( *input.cur == '"' )
+						{
+						if( input.cur - copyStart > 0 )
+							str.append( copyStart, input.cur - copyStart );
+						++input.cur; 
+						
+						return type::string_value_ptr_t( new type::StringValue( str ) );
 						}
 
-					++head;
+					++input.cur;
 					}
 
-				throw ParseException( "Insufficient JSON" );
+				throw ParseException( "Invalid string", input.lineCount );
 				}
-
-				/*
+				
 			case '[':
 				{
-				const char *parseStart = head;
-				type::array_value_ptr_t arrayVal( new type::ArrayValue() );
 				
-				while( head < foot )
-					{
-					++head;
-					head = SkipWhiteSpace( head, foot, &lineCount );
-					if( head == NULL )
-						throw ParseException( "Insufficient JSON" );
-
-					size_t elemConsumed = 0;
-					type::value_ptr_t val = Parse( head, foot - head, &elemConsumed );
-					arrayVal->Append( val );
-					head +=elemConsumed;
-					head = SkipWhiteSpace( head, foot, &lineCount );
-					
-					if( head == NULL )
-						throw ParseException( "Insufficient JSON" );
-					
-					if( *head == ']' )
-						{
-						if( consumed != NULL )
-							*consumed = (++head - parseStart);
-						return arrayVal;
-						}
-					else if( *head == ',' )
-						continue;
-					else
-						throw ParseException( "Invalid JSON" );
-					}
-
-				throw ParseException( "Invalid JSON" );
 				}
 
 			case '{':

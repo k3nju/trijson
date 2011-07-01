@@ -12,6 +12,7 @@ void NullTest()
 	void *p = (void*)1;
 	v.Get( p );
 	assert( p == NULL );
+	puts( v.Dump().c_str() );
 	}
 
 void TrueTest()
@@ -21,6 +22,7 @@ void TrueTest()
 	bool b = false;
 	v.Get( b );
 	assert( b == true );
+	puts( v.Dump().c_str() );
 	}
 
 void FalseTest()
@@ -30,6 +32,7 @@ void FalseTest()
 	bool b = true;
 	v.Get( b );
 	assert( b == false );
+	puts( v.Dump().c_str() );
 	}
 
 void NumberTest()
@@ -39,6 +42,7 @@ void NumberTest()
 	number_t num = 0xff;
 	v.Get( num );
 	assert( num == 0.1 );
+	puts( v.Dump().c_str() );
 	}
 
 void StringTest()
@@ -48,12 +52,14 @@ void StringTest()
 	string_t str = "DDD";
 	v.Get( str );
 	assert( str == "ABC" );
+	puts( v.Dump().c_str() );
 	
 	StringValue s2( string_t("ABC") );
 	Value &v2 = s2;
 	string_t str2 = "DDD";
 	v.Get( str2 );
 	assert( str2 == "ABC" );
+	puts( v2.Dump().c_str() );
 	}
 
 void ArrayTest()
@@ -91,6 +97,8 @@ void ArrayTest()
 	bool_t f2;
 	arr[4]->Get( f2 );
 	assert( f2 == false );
+
+	puts( a.Dump().c_str() );
 	}
 
 void ObjectTest()
@@ -178,6 +186,7 @@ void ObjectTest()
 	assert( f == false );
 	}
 
+	puts(object.Dump().c_str());
 	}
 
 	}
@@ -189,8 +198,8 @@ int main()
 	FalseTest();
 	NumberTest();
 	StringTest();
-	//ArrayTest();
-	//ObjectTest();
+	ArrayTest();
+	ObjectTest();
 	
 	return 0;
 	}

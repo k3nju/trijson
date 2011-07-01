@@ -83,7 +83,7 @@ namespace trijson
 					:NullImplHolder(),
 					 Value( null_type, &(NullImplHolder::impl) ){};
 
-				virtual std::string Dump() const { return "NULL"; };
+				virtual std::string Dump() const { return "null"; };
 			};
 		
 		//-----------------------------------------------------------------------------------------//
