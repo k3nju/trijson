@@ -54,9 +54,8 @@ int main()
 	assert( s == "ABC\\\"" );
 	}
 
-	/*
 	{
-	char buf[] = "[null,true , false, 1]";
+	char buf[] = "[null,true , false, 1 ]";
 	size_t consumed = 0;
 	value_ptr_t v = Parse( buf, strlen( buf ), &consumed );
 	assert( consumed == strlen( buf ) );
@@ -78,7 +77,8 @@ int main()
 	arr[3]->Get( d );
 	assert( d == 1 );
 	}
-
+	
+	/*
 	{
 	char buf[] = "{\"str\" : 123 }";
 	size_t consumed = 0;

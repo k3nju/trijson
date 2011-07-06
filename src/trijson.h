@@ -164,58 +164,37 @@ namespace trijson
 				
 			case '[':
 				{
+				++input.cur;
+				type::array_t array;
 				
+				while( input.SkipWhiteSpace() )
+					{
+					array.push_back( ParseImpl( input ) );
+					if( input.SkipWhiteSpace() == false )
+						throw ParseException( "Malformed array", input.lineCount );
+
+					if( *input.cur == ',' && ++input.cur )
+						continue;
+					else if( *input.cur == ']' && ++input.cur )
+						break;
+					else
+						throw ParseException( "Malformed array", input.lineCount );
+					}
+				
+				return type::array_value_ptr_t( new type::ArrayValue( array ) );
 				}
 
 			case '{':
 				{
-				const char *parseStart = head;
+				++input.cur;
 				type::object_t object;
 
-				while( head < foot )
+				while( input.SkipWhiteSpace() )
 					{
-					++head;
-					head = SkipWhiteSpace( head, foot, &lineCount );
-					if( head == NULL )
-						throw ParseException( "Invalid JSON" );
 					
-					size_t keyConsumed = 0;
-					type::value_ptr_t key = Parse( head, foot - head, &keyConsumed );
-					type::string_t strKey;
-					if( key->Get( strKey ) == false )
-						throw ParseException( "Invalid JSON" );
-					head += keyConsumed;
-					head = SkipWhiteSpace( head, foot, &lineCount );
-					
-					if( head == NULL || *head != ':' )
-						throw ParseException( "Invalid JSON" );
-					
-					size_t valConsumed = 0;
-					type::value_ptr_t val = Parse( head, foot - head, &valConsumed );
-					head += valConsumed;
-					head = SkipWhiteSpace( head, foot, &lineCount );
-
-					if( head == NULL )
-						throw ParseException( "Invalid JSON" );
-
-					object.insert( std::make_pair( strKey, val ) );
-
-					if( *head == '}' )
-						{
-						if( consumed != NULL )
-							*consumed = (++head - parseStart);
-						return type::object_value_ptr_t( new type::ObjectValue( object ) );
-						}
-					else if( *head == ',' )
-						continue;
-					else
-						throw ParseException( "Invalid JSON" );
 					}
-					
-				throw ParseException( "Invalid JSON" );
 				}
 			}
-				*/
 		throw ParseException( "Invalid JSON" );
 		}
 	}
