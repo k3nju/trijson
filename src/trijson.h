@@ -135,11 +135,11 @@ namespace trijson
 						{
 						++input.cur;
 						if( input.IsValid() == false )
-							throw ParseException( "Invalid string", input.lineCount );
+							throw ParseException( "Malformed string", input.lineCount );
 						
 						char c = '\0';
 						if( ParseEscapeString( *input.cur, c ) == false )
-							throw ParseException( "Invalid escape string", input.lineCount );
+							throw ParseException( "Malformed escape string", input.lineCount );
 						
 						if( input.cur - copyStart > 0 )
 							str.append( copyStart, input.cur - copyStart );
@@ -172,7 +172,6 @@ namespace trijson
 					array.push_back( ParseImpl( input ) );
 					if( input.SkipWhiteSpace() == false )
 						throw ParseException( "Malformed array", input.lineCount );
-
 					if( *input.cur == ',' && ++input.cur )
 						continue;
 					else if( *input.cur == ']' && ++input.cur )
@@ -188,17 +187,39 @@ namespace trijson
 				{
 				++input.cur;
 				type::object_t object;
-
+				
 				while( input.SkipWhiteSpace() )
 					{
 					
+					type::value_ptr_t k = ParseImpl( input );
+					if( k->GetType() != type::string_type )
+						throw ParseException( "Malformed object1" );
+					if( input.SkipWhiteSpace() == false || *input.cur != ':' )
+						throw ParseException( "Malformed object2" );
+					if( input.SkipWhiteSpace() == false )
+						throw ParseException( "Malformed object3" );
+					type::value_ptr_t v = ParseImpl( input );
+					
+					type::string_t kstr;
+					k->Get( kstr );
+					object[kstr] = v;
+
+					
+					
+					if( input.SkipWhiteSpace() == false )
+						throw ParseException( "Malformed object4" );
+					if( *input.cur == ',' )
+						continue;
+					if( *input.cur == '}' )
+						break;
 					}
+
+				return type::object_value_ptr_t( new type::ObjectValue( object ) );
 				}
 			}
 		throw ParseException( "Invalid JSON" );
 		}
-	}
-
+	
 	//-----------------------------------------------------------------------------------------//
 	type::value_ptr_t Parse( const char *buf, size_t size, size_t *consumed )
 		{
