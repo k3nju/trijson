@@ -77,6 +77,7 @@ namespace trijson
 	//-----------------------------------------------------------------------------------------//
 	type::value_ptr_t ParseImpl( InputRange &input )
 		{
+		puts( "ParseImpl" );
 		if( input.SkipWhiteSpace() == false )
 			throw ParseException( "Malformed JSON", 0 );
 		
@@ -190,7 +191,6 @@ namespace trijson
 				
 				while( input.SkipWhiteSpace() )
 					{
-					
 					type::value_ptr_t k = ParseImpl( input );
 					if( k->GetType() != type::string_type )
 						throw ParseException( "Malformed object1" );
@@ -203,8 +203,6 @@ namespace trijson
 					type::string_t kstr;
 					k->Get( kstr );
 					object[kstr] = v;
-
-					
 					
 					if( input.SkipWhiteSpace() == false )
 						throw ParseException( "Malformed object4" );
