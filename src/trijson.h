@@ -18,7 +18,7 @@ namespace trijson
 			inline bool IsValid(){ return cur < end; };
 			inline bool SkipWhiteSpace()
 				{
-				while( cur <end &&
+				while( cur < end &&
 					   ( *cur == '\x20' ||
 						 *cur == '\t'   ||
 						 *cur == '\r'   ||
@@ -77,7 +77,6 @@ namespace trijson
 	//-----------------------------------------------------------------------------------------//
 	type::value_ptr_t ParseImpl( InputRange &input )
 		{
-		puts( "ParseImpl" );
 		if( input.SkipWhiteSpace() == false )
 			throw ParseException( "Malformed JSON", 0 );
 		
@@ -196,6 +195,7 @@ namespace trijson
 						throw ParseException( "Malformed object1" );
 					if( input.SkipWhiteSpace() == false || *input.cur != ':' )
 						throw ParseException( "Malformed object2" );
+					++input.cur;
 					if( input.SkipWhiteSpace() == false )
 						throw ParseException( "Malformed object3" );
 					type::value_ptr_t v = ParseImpl( input );
@@ -226,8 +226,6 @@ namespace trijson
 		if( consumed != NULL )
 			*consumed = input.GetConsumedSize();
 
-		printf( "%02x %d\n", *input.cur, input.GetConsumedSize() );
-		
 		return ret;
 		}
 	}

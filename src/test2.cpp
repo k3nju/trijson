@@ -46,7 +46,6 @@ int main()
 	char buf[] = "\"ABC\\\"\"";
 	size_t consumed = 0;
 	value_ptr_t v = Parse( buf, strlen( buf ), &consumed );
-	puts( v->Dump().c_str() );
 	assert( consumed == 7 );
 	assert( v->GetType() == type::string_type );
 	string_t s;
