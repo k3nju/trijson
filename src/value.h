@@ -61,13 +61,14 @@ namespace trijson
 				
 				// Primary member function template.
 				template < class T > bool Get( T &out ) const;
+				template < class T > T Cast() const;
 				virtual std::string Dump() const = 0;
 				
 			protected:
 				value_type_t type_;
 				IValueImpl *holder_;
 			};
-
+		
 		//-----------------------------------------------------------------------------------------//
 		// Convertion functions for each types.
 #define DEF_GET( T )												\
@@ -87,4 +88,3 @@ namespace trijson
 #undef DEF_GET
 		}
 	}
-	

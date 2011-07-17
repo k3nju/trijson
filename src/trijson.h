@@ -159,7 +159,7 @@ namespace trijson
 					++input.cur;
 					}
 
-				throw ParseException( "Invalid string", input.lineCount );
+				throw ParseException( "Insufficient string", input.lineCount );
 				}
 				
 			case '[':
@@ -171,7 +171,7 @@ namespace trijson
 					{
 					array.push_back( ParseImpl( input ) );
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Malformed array", input.lineCount );
+						throw ParseException( "Insufficient array", input.lineCount );
 					if( *input.cur == ',' && ++input.cur )
 						continue;
 					else if( *input.cur == ']' && ++input.cur )
@@ -192,20 +192,22 @@ namespace trijson
 					{
 					type::value_ptr_t k = ParseImpl( input );
 					if( k->GetType() != type::string_type )
-						throw ParseException( "Malformed object1" );
-					if( input.SkipWhiteSpace() == false || *input.cur != ':' )
-						throw ParseException( "Malformed object2" );
+						throw ParseException( "Key type is not string" );
+					if( input.SkipWhiteSpace() == false )
+						throw ParseException( "Insufficient object" );
+					if( *input.cur != ':' )
+						throw ParseException( "Malformed object" );
 					++input.cur;
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Malformed object3" );
+						throw ParseException( "Insufficient object" );
 					type::value_ptr_t v = ParseImpl( input );
 					
 					type::string_t kstr;
 					k->Get( kstr );
-					object[kstr] = v;
+					object[ kstr ] = v;
 					
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Malformed object4" );
+						throw ParseException( "Insufficient object" );
 					if( *input.cur == ',' )
 						continue;
 					if( *input.cur == '}' )
@@ -215,7 +217,7 @@ namespace trijson
 				return type::object_value_ptr_t( new type::ObjectValue( object ) );
 				}
 			}
-		throw ParseException( "Invalid JSON" );
+		throw ParseException( "Insufficient object" );
 		}
 	
 	//-----------------------------------------------------------------------------------------//
