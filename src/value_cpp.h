@@ -52,13 +52,13 @@ namespace trijson
 		template < class T >
 		struct ImplHolder
 			{
-				inline ImplHolder():impl(){};
+				inline ImplHolder():impl(){}
 				template < class A0 >
-				inline ImplHolder( A0 &a0 ):impl( a0 ){};
+				inline ImplHolder( A0 &a0 ):impl( a0 ){}
 				template < class A0, class A1 >
-				inline ImplHolder( A0 &a0, A1 &a1 ):impl( a0, a1 ){};
+				inline ImplHolder( A0 &a0, A1 &a1 ):impl( a0, a1 ){}
 				template < class A0, class A1, class A2 >
-				inline ImplHolder( A0 &a0, A1 &a1, A2 &a2 ):impl( a0, a1, a2 ){};
+				inline ImplHolder( A0 &a0, A1 &a1, A2 &a2 ):impl( a0, a1, a2 ){}
 				
 				T impl;
 			};

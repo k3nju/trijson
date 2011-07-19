@@ -45,10 +45,10 @@ namespace trijson
 				virtual const void* GetValue() const = 0;
 				// Sugar.
 				template < class T >
-				const T* Cast() const { return (T*)GetValue(); };
+				const T* Cast() const { return (T*)GetValue(); }
 
 				// Helper member function for non-const.
-				void* GetValue(){ return const_cast<void*>(static_cast<const IValueImpl*>(this)->GetValue()); };
+				void* GetValue(){ return const_cast<void*>(static_cast<const IValueImpl*>(this)->GetValue()); }
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -56,12 +56,12 @@ namespace trijson
 		class Value
 			{
 			public:
-				inline Value( value_type_t type, IValueImpl *holder ):type_( type ), holder_( holder ){};
-				inline value_type_t GetType(){ return type_; };
+				inline Value( value_type_t type, IValueImpl *holder ):type_( type ), holder_( holder ){}
+				inline value_type_t GetType(){ return type_; }
 				
 				// Primary member function template.
 				template < class T > bool Get( T &out ) const;
-				template < class T > T Cast() const;
+				//template < class T > T Cast() const;
 				virtual std::string Dump() const = 0;
 				
 			protected:
@@ -79,12 +79,12 @@ namespace trijson
 			out = *(T##_t*)(holder_->GetValue());					\
 			return true;											\
 			}
-		DEF_GET( null );
-		DEF_GET( bool );
-		DEF_GET( number );
-		DEF_GET( string );
-		DEF_GET( array );
-		DEF_GET( object );
+		DEF_GET( null )
+		DEF_GET( bool )
+		DEF_GET( number )
+		DEF_GET( string )
+		DEF_GET( array )
+		DEF_GET( object )
 #undef DEF_GET
 		}
 	}

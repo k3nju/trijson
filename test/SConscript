@@ -1,0 +1,6 @@
+#! /usr/bin/python
+# -*- coding:utf-8 -*-
+
+Import( "ENV" );
+for i in Glob( "*.cpp" ):
+	ENV.Program( i );
