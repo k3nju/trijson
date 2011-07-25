@@ -20,7 +20,7 @@ ENV = Environment( CXXFLAGS = CXXFLAGS );
 Export( "ENV" );
 
 ENV.SConscript( dirs = "./src" );
-ENV.SConscript( dirs = "./test" );
+ENV.SConscript( dirs = "./test", variant_dir = "build/" );
 
 
 # EOF
