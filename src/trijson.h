@@ -84,7 +84,7 @@ namespace trijson
 			{
 			case 'n':
 				{
-				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(int32_t*)"null" )
+				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"null" )
 					throw ParseException( "null?", input.lineCount );
 
 				input.Forward( 4 );
@@ -93,7 +93,7 @@ namespace trijson
 
 			case 't':
 				{
-				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(int32_t*)"true" )
+				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"true" )
 					throw ParseException( "true?", input.lineCount );
 
 				input.Forward( 4 );
@@ -102,7 +102,7 @@ namespace trijson
 				
 			case 'f':
 				{
-				if( input.GetCurrentSize() < 5 || *(uint32_t*)(input.cur+1) != *(int32_t*)"alse" )
+				if( input.GetCurrentSize() < 5 || *(uint32_t*)(input.cur+1) != *(uint32_t*)"alse" )
 					throw ParseException( "false?", input.lineCount );
 
 				input.Forward( 5 );

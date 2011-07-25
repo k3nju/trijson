@@ -61,18 +61,18 @@ int main()
 	array_t arr;
 	v->Get( arr );
 	
-	void *p;
+	void *p = NULL;
 	arr[0]->Get( p );
 	assert( p == NULL );
 
-	bool t;
+	bool t = false;
 	arr[1]->Get( t );
 	assert( t == true );
 
 	arr[2]->Get( t );
 	assert( t == false );
 
-	double d;
+	double d = 0.0;
 	arr[3]->Get( d );
 	assert( d == 1 );
 	}
@@ -86,7 +86,7 @@ int main()
 	object_t o;
 	v->Get( o );
 
-	double num;
+	double num = 0.0;
 	o["str"]->Get( num );
 	assert( num == 123 );
 	}

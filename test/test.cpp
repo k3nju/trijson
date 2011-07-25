@@ -82,19 +82,19 @@ void ArrayTest()
 	arr[0]->Get( str2 );
 	assert( str2 == "ABC" );
 
-	number_t num2;
+	number_t num2 = 0;
 	arr[1]->Get( num2 );
 	assert( num2 == 1.234 );
 
-	null_t null2;
+	null_t null2 = NULL;
 	arr[2]->Get( null2 );
 	assert( null2 == NULL );
 
-	bool_t t2;
+	bool_t t2 = false;
 	arr[3]->Get( t2 );
 	assert( t2 == true );
 	
-	bool_t f2;
+	bool_t f2 = true;
 	arr[4]->Get( f2 );
 	assert( f2 == false );
 
@@ -129,25 +129,25 @@ void ObjectTest()
 	}
 	
 	{
-	double d;
+	double d = 0.0;
 	object["num"]->Get( d );
 	assert( d == 1.234 );
 	}
 
 	{
-	void *n;
+	void *n = NULL;
 	object["null"]->Get( n );
 	assert( n == NULL );
 	}
 
 	{
-	bool t;
+	bool t = false;
 	object["true"]->Get( t );
 	assert( t == true );
 	}
 
 	{
-	bool f;
+	bool f = true;
 	object["false"]->Get( f );
 	assert( f == false );
 	}
@@ -163,25 +163,25 @@ void ObjectTest()
 	}
 
 	{
-	double d;
+	double d = 0.0;
 	a[1]->Get( d );
 	assert( d == 1.234 );
 	}
 
 	{
-	void *n;
+	void *n = NULL;
 	a[2]->Get( n );
 	assert( n == NULL );
 	}
 
 	{
-	bool t;
+	bool t = false;
 	a[3]->Get( t );
 	assert( t == true );
 	}
 
 	{
-	bool f;
+	bool f = true;
 	a[4]->Get( f );
 	assert( f == false );
 	}
