@@ -29,7 +29,7 @@ namespace trijson
 
 				return IsValid();
 				}
-			inline size_t GetCurrentSize(){ return end - cur; };
+			inline size_t GetRemainingSize(){ return end - cur; };
 			inline size_t GetConsumedSize(){ return cur - begin; };
 			inline void Forward( size_t s ){ cur +=s; };
 
@@ -38,7 +38,10 @@ namespace trijson
 			const char *cur;
 			size_t lineCount;
 		};
-	
+
+	//-----------------------------------------------------------------------------------------//
+
+
 	//-----------------------------------------------------------------------------------------//
 	inline bool ParseEscapeString( char in, char &out )
 	{
@@ -84,7 +87,7 @@ namespace trijson
 			{
 			case 'n':
 				{
-				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"null" )
+				if( input.GetRemainingSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"null" )
 					throw ParseException( "null?", input.lineCount );
 
 				input.Forward( 4 );
@@ -93,7 +96,7 @@ namespace trijson
 
 			case 't':
 				{
-				if( input.GetCurrentSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"true" )
+				if( input.GetRemainingSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"true" )
 					throw ParseException( "true?", input.lineCount );
 
 				input.Forward( 4 );
@@ -102,7 +105,7 @@ namespace trijson
 				
 			case 'f':
 				{
-				if( input.GetCurrentSize() < 5 || *(uint32_t*)(input.cur+1) != *(uint32_t*)"alse" )
+				if( input.GetRemainingSize() < 5 || *(uint32_t*)(input.cur+1) != *(uint32_t*)"alse" )
 					throw ParseException( "false?", input.lineCount );
 
 				input.Forward( 5 );
@@ -115,8 +118,8 @@ namespace trijson
 				double val = strtod( input.cur, &endptr );
 				if( ( val == 0 && endptr == (char*)input.cur ) ||   // convertion didn't operated.
 					( ( ( val == HUGE_VALF || val == HUGE_VALL ) || // overflow/underflow happend.
-						( val == 0 ) ) && errno == ERANGE ) ||      // converted over buf range.
-					( endptr > (char*)input.end ) )
+						( val == 0 ) ) && errno == ERANGE ) ||      
+					( endptr > (char*)input.end ) )                 // converted over buf range.
 					throw ParseException( "Invalid number", input.lineCount );
 
 				input.Forward( endptr - input.cur );
@@ -136,16 +139,46 @@ namespace trijson
 						++input.cur;
 						if( input.IsValid() == false )
 							throw ParseException( "Malformed string", input.lineCount );
-						
-						char c = '\0';
-						if( ParseEscapeString( *input.cur, c ) == false )
-							throw ParseException( "Malformed escape string", input.lineCount );
-						
-						if( input.cur - copyStart > 0 )
-							str.append( copyStart, input.cur - copyStart );
-						str.push_back( c );
 
-						copyStart = input.cur + 1;
+						if( *input.cur != 'u' )
+							{
+							char c = '\0';
+							if( ParseEscapeString( *input.cur, c ) == false )
+								throw ParseException( "Malformed escape string", input.lineCount );
+							
+							if( input.cur - copyStart > 0 )
+							str.append( copyStart, input.cur - copyStart );
+							str.push_back( c );
+
+							copyStart = input.cur + 1;
+							}
+						else
+							{
+							if( input.GetRemainingSize() < 4 )
+								throw ParseException( "Insufficient four-hex-digits" );
+
+							uint32_t unicodeChar = 0;
+							char *p = (char*)&unicodeChar + 4;
+							for( int i = 0; i < 4; ++i )
+								{
+								// digitalizing.
+								
+								// '0' - '9'
+								if( 0x30 <= *input.cur && *input.cur <= 0x39 )
+									*p = *input.cur - 0x30;
+								// 'A' - 'F'
+								else if( 0x41 <= *input.cur && *input.cur <= 0x46 )
+									*p = *input.cur - 0x37;
+								// 'a' - 'f'
+								else if( 0x61 <= *input.cur && *input.cur <= 0x66 )
+									*p = *input.cur - 0x57;
+								else
+									throw ParseException( "Malformed four-hex-digits" );
+								
+								--p;
+								}
+							
+							}
 						}
 					else if( *input.cur == '"' )
 						{
