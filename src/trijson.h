@@ -4,79 +4,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
+#include <stdio.h>
+#include "inputrange.h"
 #include "value.h"
 #include "value_cpp.h"
-#include <stdio.h>
 
 namespace trijson
 	{
-	//-----------------------------------------------------------------------------------------//
-	struct InputRange
-		{
-			inline InputRange( const char *h, const char *f )
-				:begin( h ), end( f ), cur( h ), lineCount( 0 ){};
-			inline bool IsValid(){ return cur < end; };
-			inline bool SkipWhiteSpace()
-				{
-				while( cur < end &&
-					   ( *cur == '\x20' ||
-						 *cur == '\t'   ||
-						 *cur == '\r'   ||
-						 *cur == '\xb'  ||
-						 *cur == '\xc'  ||
-						 ( *cur == '\n' && ++lineCount ) ) )
-					++cur;
-
-				return IsValid();
-				}
-			inline size_t GetRemainingSize(){ return end - cur; };
-			inline size_t GetConsumedSize(){ return cur - begin; };
-			inline void Forward( size_t s ){ cur +=s; };
-
-			const char *begin;
-			const char *end;
-			const char *cur;
-			size_t lineCount;
-		};
-
-	//-----------------------------------------------------------------------------------------//
-
-
-	//-----------------------------------------------------------------------------------------//
-	inline bool ParseEscapeString( char in, char &out )
-	{
-	switch( in )
-		{
-		case 'b':
-			out = '\b';
-			break;
-		case 'f':
-			out = '\f';
-			break;
-		case 'n':
-			out = '\n';
-			break;
-		case 'r':
-			out = '\r';
-			break;
-
-		case 't':
-			out = '\t';
-			break;
-			
-		case '"':
-		case '/':
-		case '\\':
-			out = in;
-			break;
-
-		default:
-			return false;
-		}
-
-	return true;
-	}
-
 	//-----------------------------------------------------------------------------------------//
 	type::value_ptr_t ParseImpl( InputRange &input )
 		{
@@ -116,10 +50,10 @@ namespace trijson
 				{
 				char *endptr = NULL;
 				double val = strtod( input.cur, &endptr );
-				if( ( val == 0 && endptr == (char*)input.cur ) ||   // convertion didn't operated.
-					( ( ( val == HUGE_VALF || val == HUGE_VALL ) || // overflow/underflow happend.
-						( val == 0 ) ) && errno == ERANGE ) ||      
-					( endptr > (char*)input.end ) )                 // converted over buf range.
+				if( ( val == 0 && endptr == (char*)input.cur )      // convertion didn't operate.
+					|| ( ( ( val == HUGE_VALF || val == HUGE_VALL ) // overflow/underflow happend.
+				    || ( val == 0 ) ) && errno == ERANGE )
+					|| ( endptr > (char*)input.end ) )              // converted over buf range.
 					throw ParseException( "Invalid number", input.lineCount );
 
 				input.Forward( endptr - input.cur );
@@ -157,26 +91,25 @@ namespace trijson
 							if( input.GetRemainingSize() < 4 )
 								throw ParseException( "Insufficient four-hex-digits" );
 
-							uint32_t unicodeChar = 0;
-							char *p = (char*)&unicodeChar + 4;
-							for( int i = 0; i < 4; ++i )
+							uint32_t codepoint = 0;
+							if( StrToUint32( input.cur, 4, &codepoint ) != 4
+								|| 0xdc00 <= codepoint && codepoint <= 0xdfff )
+								throw ParseException( "Invalid 4-hex-digits" );
+							input.Foward( 4 );
+							
+							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
 								{
-								// digitalizing.
+								uint32_t second = 0;
+								if( StrToUint32( input.cur, 4, &second ) != 4 ||
+									!( 0xdc00 <= second && second <= 0xdfff ) )
+									throw ParseException( "Invalid 4-hex-digits" );
+								input.Forward( 4 );
 								
-								// '0' - '9'
-								if( 0x30 <= *input.cur && *input.cur <= 0x39 )
-									*p = *input.cur - 0x30;
-								// 'A' - 'F'
-								else if( 0x41 <= *input.cur && *input.cur <= 0x46 )
-									*p = *input.cur - 0x37;
-								// 'a' - 'f'
-								else if( 0x61 <= *input.cur && *input.cur <= 0x66 )
-									*p = *input.cur - 0x57;
-								else
-									throw ParseException( "Malformed four-hex-digits" );
-								
-								--p;
+								codepoint = 0x10000
+									| ( ( codepoint - 0xd8000 ) << 0xa )
+									| ( second - 0xdc00 );
 								}
+
 							
 							}
 						}
