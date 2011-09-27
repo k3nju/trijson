@@ -88,8 +88,9 @@ namespace trijson
 							}
 						else
 							{
+							input.Foward( 1 );
 							if( input.GetRemainingSize() < 4 )
-								throw ParseException( "Insufficient four-hex-digits" );
+								throw ParseException( "Insufficient 4-hex-digits" );
 
 							uint32_t codepoint = 0;
 							if( StrToUint32( input.cur, 4, &codepoint ) != 4
@@ -109,8 +110,14 @@ namespace trijson
 									| ( ( codepoint - 0xd8000 ) << 0xa )
 									| ( second - 0xdc00 );
 								}
+							else if( 0xdc00 <= second && second <= 0xdfff )
+								throw ParseException( "Invalid 4-hex-digits" );
 
-							
+							uint8_t buf[4];
+							size_t l = EncodeFromUTF16ToUTF8( codepoint, buf );
+							if( l == 0 )
+								throw ParseException( "Invalid 4-hex-digits" );
+							str.append( (char*)buf, l );
 							}
 						}
 					else if( *input.cur == '"' )

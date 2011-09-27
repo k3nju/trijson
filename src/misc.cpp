@@ -41,8 +41,8 @@ namespace trijson
 	inline uint32_t StrToUint32( const char *in, size_t size, uint32_t *out )
 		{
 		uint32_t num = 0;
-		uint32_t count = min( (int)size, sizeof( uint32_t ) );
-		uint32_t i = 0;
+		size_t count = min( (int)size, sizeof( uint32_t ) );
+		size_t i = 0;
 		
 		for( i = 0; i < count; ++i )
 			{
@@ -72,10 +72,10 @@ namespace trijson
 		}
 
 	//-----------------------------------------------------------------------------------------//
-	uint32_t EncodeToUTF8( uint32_t in, uint8_t *out )
+	size_t EncodeFromUTF16ToUTF8( uint32_t in, uint8_t *out )
 		{
-#define AS_UINT8( n ) (uint8_t)( n )
-		uint32_t ret = 0;
+#define AS_UINT8( n ) (uint8_t)( n & 0xff )
+		size_t ret = 0;
 		
 		if( in < 0x80 )
 			{
@@ -84,14 +84,31 @@ namespace trijson
 			}
 		else if( in < 0x800 )
 			{
-			out[0] = 0xc0 | AS_UINT8( ( in & 0x7c0 ) >> 6 );
+			out[0] = 0xc0 | AS_UINT8( in >> 0x06 );
 			out[1] = 0x80 | AS_UINT8( in & 0x3f );
 			ret = 2;
 			}
 		else if( in < 0x10000 )
 			{
-			out[0] = 0xe0 | AS_UINT8(  
+			out[0] = 0xe0 | AS_UINT8( in >> 0x0b );
+			out[1] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x3f );
+			out[2] = 0x80 | AS_UINT8( in & 0x3f );
+			ret = 3;
 			}
+		else if( in < 0x10ffff )
+			{
+			out[0] = 0xf0 | AS_UINT8( in >> 0x12 );
+			out[1] = 0x80 | AS_UINT8( ( in >> 0x0b ) & 0x3f );
+			out[2] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x3f );
+			out[3] = 0x80 | AS_UNIT8( in & 0x3f );
+			ret = 4;
+			}
+		else
+			{
+			ret = 0;
+			}
+
+		return ret;
 #undef AS_UINT8
 		}
 	}
