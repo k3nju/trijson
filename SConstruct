@@ -11,12 +11,15 @@ CXXFLAGS = [
 	"-pedantic",
 	"-Wall",
 	"-Wno-variadic-macros",
+	"-std=c++0x",
 	];
+
+LIBS = [ "gtest", "pthread" ]
 
 TOP_DIR = os.getcwd() + "/";
 CXXFLAGS.append( "-I" + TOP_DIR + "src/" );
 
-ENV = Environment( CXXFLAGS = CXXFLAGS );
+ENV = Environment( CXXFLAGS = CXXFLAGS, LIBS=LIBS );
 Export( "ENV" );
 
 ENV.SConscript( dirs = "./src" );

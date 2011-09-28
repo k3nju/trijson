@@ -4,6 +4,7 @@
 #include <algorithm>
 using namespace std;
 
+/*
 
 
 bool Utf16ToUtf8( 
@@ -20,7 +21,7 @@ bool Utf16ToUtf8(
 		}
 	}
 
-
+*/
 int main()
 	{
 	

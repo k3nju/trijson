@@ -2,5 +2,5 @@
 # -*- coding:utf-8 -*-
 
 Import( "ENV" );
-for i in Glob( "*.cpp" ):
+for i in Glob( "*test.cpp" ):
 	ENV.Program( i );

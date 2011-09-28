@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include "inputrange.h"
+#include "misc.h"
 #include "value.h"
 #include "value_cpp.h"
 
@@ -88,15 +89,15 @@ namespace trijson
 							}
 						else
 							{
-							input.Foward( 1 );
+							input.Forward( 1 );
 							if( input.GetRemainingSize() < 4 )
 								throw ParseException( "Insufficient 4-hex-digits" );
 
 							uint32_t codepoint = 0;
 							if( StrToUint32( input.cur, 4, &codepoint ) != 4
-								|| 0xdc00 <= codepoint && codepoint <= 0xdfff )
+								|| ( 0xdc00 <= codepoint && codepoint <= 0xdfff ) )
 								throw ParseException( "Invalid 4-hex-digits" );
-							input.Foward( 4 );
+							input.Forward( 4 );
 							
 							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
 								{
@@ -110,7 +111,7 @@ namespace trijson
 									| ( ( codepoint - 0xd8000 ) << 0xa )
 									| ( second - 0xdc00 );
 								}
-							else if( 0xdc00 <= second && second <= 0xdfff )
+							else if( 0xdc00 <= codepoint && codepoint <= 0xdfff )
 								throw ParseException( "Invalid 4-hex-digits" );
 
 							uint8_t buf[4];

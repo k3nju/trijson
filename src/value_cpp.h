@@ -182,7 +182,12 @@ namespace trijson
 				inline explicit StringValue( const string_t &str )
 					:StringImplHolder( str ),
 					 Value( string_type, &(StringImplHolder::impl) ){};
-				virtual std::string Dump() const { return *(string_t*)(StringImplHolder::impl.GetValue()); };
+				virtual std::string Dump() const
+					{
+					std::stringstream ss;
+					ss << '"' << *(string_t*)(StringImplHolder::impl.GetValue()) << '"';
+					return ss.str();
+					};
 			};
 
 		//-----------------------------------------------------------------------------------------//
@@ -259,15 +264,14 @@ namespace trijson
 				virtual std::string Dump() const
 					{
 					std::stringstream ss;
-					ss << "{";
 					object_t::const_iterator begin = GetObject()->begin();
 					object_t::const_iterator end   = GetObject()->end();
-
-					if( begin++ != end )
-						ss << "\"" << begin->first << "\":" << begin->second->Dump();
-					for(; begin != end; ++begin )
-						ss << "," << "\"" << begin->first << "\":" << begin->second->Dump();
 					
+					ss << "{";
+					if( begin != end )
+						ss << "\"" << begin->first << "\":" << begin->second->Dump();
+					for( ++begin; begin != end; ++begin )
+						ss << "," << "\"" << begin->first << "\":" << begin->second->Dump();
 					ss << "}";
 					return ss.str();
 					}
