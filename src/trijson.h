@@ -80,9 +80,10 @@ namespace trijson
 							char c = '\0';
 							if( ParseEscapeString( *input.cur, c ) == false )
 								throw ParseException( "Malformed escape string", input.lineCount );
-							
-							if( input.cur - copyStart > 0 )
-							str.append( copyStart, input.cur - copyStart );
+
+							const char *copyEnd = input.cur - 1;
+							if( copyEnd - copyStart > 0 )
+								str.append( copyStart, copyEnd - copyStart );
 							str.push_back( c );
 
 							copyStart = input.cur + 1;
@@ -191,7 +192,8 @@ namespace trijson
 				return type::object_value_ptr_t( new type::ObjectValue( object ) );
 				}
 			}
-		throw ParseException( "Insufficient object" );
+		
+		throw ParseException( "Malformed JSON" );
 		}
 	
 	//-----------------------------------------------------------------------------------------//

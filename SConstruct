@@ -22,7 +22,7 @@ CXXFLAGS.append( "-I" + TOP_DIR + "src/" );
 ENV = Environment( CXXFLAGS = CXXFLAGS, LIBS=LIBS );
 Export( "ENV" );
 
-ENV.SConscript( dirs = "./src" );
+#ENV.SConscript( dirs = "./src" );
 ENV.SConscript( dirs = "./test", variant_dir = "build/" );
 
 

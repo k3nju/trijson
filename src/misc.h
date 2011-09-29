@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <string>
 #include <stdint.h>
 
 namespace trijson
@@ -112,5 +113,17 @@ namespace trijson
 
 		return ret;
 #undef AS_UINT8
+		}
+
+	//-----------------------------------------------------------------------------------------//
+	inline void CopyToVector( std::vector<char> &v, const char *src, size_t offset, size_t size )
+		{
+		if( size == 0 )
+			return;
+
+		size_t voffset = v.size();
+		if( v.capacity() < v.size() + size )
+			v.resize( v.size() + size );
+		memmove( &v[voffset], src + offset, size );
 		}
 	}

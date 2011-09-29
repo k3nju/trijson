@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include "value.h"
+#include "misc.h"
 #include "exception.h"
 
 namespace trijson
@@ -184,9 +185,50 @@ namespace trijson
 					 Value( string_type, &(StringImplHolder::impl) ){};
 				virtual std::string Dump() const
 					{
-					std::stringstream ss;
-					ss << '"' << *(string_t*)(StringImplHolder::impl.GetValue()) << '"';
-					return ss.str();
+					string_t *val = (string_t*)(StringImplHolder::impl.GetValue());
+					const char *str = val->c_str();
+					size_t strSize = val->size();
+					size_t copyStart = 0;
+					size_t i = 0;
+					std::vector<char> tmp;
+					
+					tmp.push_back( '"' );
+					for(; i < strSize; ++i )
+						{
+						switch( *( str + i ) )
+							{
+#define REPLACE( a, b )                                                 \
+							case:										\
+								{										\
+								CopyToVector( tmp, str, copyStart, i - copyStart );	\
+								tmp.push_back( '\\' );					\
+								tmp.push_back( b );						\
+								copyStart = i + 1;						\
+								break;									\
+								}
+							REPLACE( '"', '"' );
+							REPLACE( '\\', '\\' );
+							REPLACE( '/', '/' );
+							REPLACE( '\b', 'b' );
+							REPLACE( '\f', 'f' );
+							REPLACE( '\n', 'n' );
+							REPLACE( '\t', 't' );
+							}
+
+						// ctrl chars
+						if( *( str * i ) < 0x20 )
+							{
+							size_t copySize = i - copySart;
+							CopyToVector( tmp, str, copyStart, copySize );
+							
+							}
+						}
+					size_t copySize = i - copyStart;
+					CopyToVector( tmp, str, copyStart, copySize );
+					tmp.push_back( '"' );
+					tmp.push_back( '\0' );
+
+					return &tmp[0];
 					};
 			};
 
