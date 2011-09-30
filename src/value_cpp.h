@@ -216,11 +216,14 @@ namespace trijson
 							}
 
 						// ctrl chars
-						if( *( str * i ) < 0x20 )
+						if( (unsigned char)*( str + i ) < 0x20 )
 							{
 							size_t copySize = i - copySart;
 							CopyToVector( tmp, str, copyStart, copySize );
-							
+							char digits[6];
+							snprintf( digits, sizeof( digits ), "\\u%04x", (unsigned char)*( str + i ) );
+							CopyToVector( tmp, digits, 0, sizeof( digits ) );
+							copyStart = i + 1;
 							}
 						}
 					size_t copySize = i - copyStart;
