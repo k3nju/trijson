@@ -1,6 +1,24 @@
 #! /usr/bin/python
 # -*- coding:utf-8 -*-
 
+import os;
+import shutil;
+
+Import( "TOP_DIR" );
 Import( "ENV" );
+
+build_testdata = TOP_DIR + "build/testdata";
+
+try:
+	for ( r, d, fs ) in os.walk( build_testdata ):
+		for f in fs:
+			p = os.path.join( r, f );
+			os.remove( p );
+	os.rmdir( TOP_DIR + "build/testdata" );
+except Exception as E:
+	print E;
+shutil.copytree( TOP_DIR + "test/testdata/", TOP_DIR + "build/testdata/" );
+
 for i in Glob( "*test.cpp" ):
 	ENV.Program( i );
+

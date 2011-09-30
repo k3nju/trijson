@@ -32,26 +32,25 @@ int ReadFile( const char *file, char *out, size_t outSize )
 	return sizeRead;
 	}
 
-bool Test( char *srcFile, char *cmpFile )
+bool Test( const char *srcFile, const char *cmpFile )
 	{
 	char srcBuf[1024];
 	char cmpBuf[1024];
 
-	int srcSize = Read( srcFile, srcBuf, sizeof( srcBuf ) - 1 );
+	int srcSize = ReadFile( srcFile, srcBuf, sizeof( srcBuf ) - 1 );
 	if( srcSize == -1 )
 		{
-		fprintf( stderr, "src file read error" );
+		fprintf( stderr, "%s",  "src file read error" );
 		return false;
 		}
 
-	int cmpSize = Read( outFile, cmpBuf, sizeof( cmpBuf ) - 1 );
+	int cmpSize = ReadFile( cmpFile, cmpBuf, sizeof( cmpBuf ) - 1 );
 	if( cmpSize == -1 )
 		{
-		fprintf( stderr, "out file read error" );
+		fprintf( stderr, "%s",  "out file read error" );
 		return false;
 		}
 
-	size_t sizeRead = 0;
 	size_t consumed = 0;
 	type::value_ptr_t val;
 	
@@ -61,7 +60,7 @@ bool Test( char *srcFile, char *cmpFile )
 		}
 	catch( ParseException &E )
 		{
-		fprintf( stderr, E.what() );
+		fprintf( stderr, "%s:%d\n", E.what(), E.line );
 		return false;
 		}
 
@@ -71,11 +70,23 @@ bool Test( char *srcFile, char *cmpFile )
 	EXPECT_EQ( consumed, srcSize );
 	EXPECT_EQ( s.length(), cmpSize );
 	EXPECT_EQ( memcmp( s.c_str(), cmpBuf, cmpSize ), 0 );
+
+	return true;
 	}
 
-TEST( StringTests, NormalTests )
+TEST( StringTests, AsciiStringTest )
 	{
-	Test( "./testdata/string1.enc", "./testdata/string1.raw" );
+	ASSERT_TRUE( ::Test( "./build/testdata/string1.enc", "./build/testdata/string1.raw" ) );
+	}
+
+TEST( StringTests, EscapedCtrlCharTest )
+	{
+	ASSERT_TRUE( ::Test( "./build/testdata/string2.enc", "./build/testdata/string2.raw" ) );
+	}
+
+TEST( StringTests, FourHexDigitsTest )
+	{
+	ASSERT_TRUE( ::Test( "./build/testdata/string3.enc", "./build/testdata/string3.raw" ) );
 	}
 
 int main( int argc, char **argv )

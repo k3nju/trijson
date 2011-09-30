@@ -198,7 +198,7 @@ namespace trijson
 						switch( *( str + i ) )
 							{
 #define REPLACE( a, b )                                                 \
-							case:										\
+							case a:										\
 								{										\
 								CopyToVector( tmp, str, copyStart, i - copyStart );	\
 								tmp.push_back( '\\' );					\
@@ -218,7 +218,7 @@ namespace trijson
 						// ctrl chars
 						if( (unsigned char)*( str + i ) < 0x20 )
 							{
-							size_t copySize = i - copySart;
+							size_t copySize = i - copyStart;
 							CopyToVector( tmp, str, copyStart, copySize );
 							char digits[6];
 							snprintf( digits, sizeof( digits ), "\\u%04x", (unsigned char)*( str + i ) );

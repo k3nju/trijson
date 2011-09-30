@@ -17,6 +17,8 @@ CXXFLAGS = [
 LIBS = [ "gtest", "pthread" ]
 
 TOP_DIR = os.getcwd() + "/";
+Export( "TOP_DIR" );
+
 CXXFLAGS.append( "-I" + TOP_DIR + "src/" );
 
 ENV = Environment( CXXFLAGS = CXXFLAGS, LIBS=LIBS );
