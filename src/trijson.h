@@ -23,7 +23,7 @@ namespace trijson
 			case 'n':
 				{
 				if( input.GetRemainingSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"null" )
-					throw ParseException( "null?", input.lineCount );
+					throw ParseException( "Malformed JSON. Meaning null?", input.lineCount );
 
 				input.Forward( 4 );
 				return type::null_value_ptr_t( new type::NullValue() );
@@ -32,7 +32,7 @@ namespace trijson
 			case 't':
 				{
 				if( input.GetRemainingSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"true" )
-					throw ParseException( "true?", input.lineCount );
+					throw ParseException( "Malformed JSON. Meaning true?", input.lineCount );
 
 				input.Forward( 4 );
 				return type::true_value_ptr_t( new type::TrueValue() );
@@ -41,7 +41,7 @@ namespace trijson
 			case 'f':
 				{
 				if( input.GetRemainingSize() < 5 || *(uint32_t*)(input.cur+1) != *(uint32_t*)"alse" )
-					throw ParseException( "false?", input.lineCount );
+					throw ParseException( "Malformed JSON. Meaning false?", input.lineCount );
 
 				input.Forward( 5 );
 				return type::false_value_ptr_t( new type::FalseValue() );
@@ -55,7 +55,7 @@ namespace trijson
 					|| ( ( ( val == HUGE_VALF || val == HUGE_VALL ) // overflow/underflow happend.
 				    || ( val == 0 ) ) && errno == ERANGE )
 					|| ( endptr > (char*)input.end ) )              // converted over buf range.
-					throw ParseException( "Invalid number", input.lineCount );
+					throw ParseException( "Malformed JSON. Meaning number?", input.lineCount );
 
 				input.Forward( endptr - input.cur );
 				return type::number_value_ptr_t( new type::NumberValue( val ) );
@@ -69,11 +69,14 @@ namespace trijson
 				
 				while( input.IsValid() )
 					{
+					if( 0x00 <= *input.cur && *input.cur <= 0x1f )
+						throw ParseException( "Malformed string. Insufficient string value", input.lineCount );
+					
 					if( *input.cur == '\\' )
 						{
 						++input.cur;
 						if( input.IsValid() == false )
-							throw ParseException( "Malformed string", input.lineCount );
+							throw ParseException( "Malformed espace character.", input.lineCount );
 
 						if( *input.cur != 'u' )
 							{
@@ -92,12 +95,12 @@ namespace trijson
 							{
 							input.Forward( 1 );
 							if( input.GetRemainingSize() < 4 )
-								throw ParseException( "Insufficient 4-hex-digits" );
+								throw ParseException( "Insufficient 4-hex-digits", input.lineCount );
 
 							uint32_t codepoint = 0;
 							if( StrToUint32( input.cur, 4, &codepoint ) != 4
 								|| ( 0xdc00 <= codepoint && codepoint <= 0xdfff ) )
-								throw ParseException( "Invalid 4-hex-digits" );
+								throw ParseException( "Invalid 4-hex-digits", input.lineCount );
 							input.Forward( 4 );
 							
 							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
@@ -105,7 +108,7 @@ namespace trijson
 								uint32_t second = 0;
 								if( StrToUint32( input.cur, 4, &second ) != 4 ||
 									!( 0xdc00 <= second && second <= 0xdfff ) )
-									throw ParseException( "Invalid 4-hex-digits" );
+									throw ParseException( "Invalid UTF16 2nd surrogate pair", input.lineCount );
 								input.Forward( 4 );
 								
 								codepoint = 0x10000
@@ -113,12 +116,12 @@ namespace trijson
 									| ( second - 0xdc00 );
 								}
 							else if( 0xdc00 <= codepoint && codepoint <= 0xdfff )
-								throw ParseException( "Invalid 4-hex-digits" );
+								throw ParseException( "Invalid UTF16 2nd surrogate pair range appeared at first", input.lineCount );
 
 							uint8_t buf[4];
 							size_t l = EncodeFromUTF16ToUTF8( codepoint, buf );
 							if( l == 0 )
-								throw ParseException( "Invalid 4-hex-digits" );
+								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
 							str.append( (char*)buf, l );
 							}
 						}
@@ -167,14 +170,14 @@ namespace trijson
 					{
 					type::value_ptr_t k = ParseImpl( input );
 					if( k->GetType() != type::string_type )
-						throw ParseException( "Key type is not string" );
+						throw ParseException( "Key type is not string", input.lineCount );
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Insufficient object" );
+						throw ParseException( "Insufficient object", input.lineCount );
 					if( *input.cur != ':' )
 						throw ParseException( "Malformed object" );
 					++input.cur;
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Insufficient object" );
+						throw ParseException( "Insufficient object", input.lineCount );
 					type::value_ptr_t v = ParseImpl( input );
 					
 					type::string_t kstr;
@@ -182,7 +185,7 @@ namespace trijson
 					object[ kstr ] = v;
 					
 					if( input.SkipWhiteSpace() == false )
-						throw ParseException( "Insufficient object" );
+						throw ParseException( "Insufficient object", input.lineCount );
 					if( *input.cur == ',' )
 						continue;
 					if( *input.cur == '}' )
@@ -193,7 +196,7 @@ namespace trijson
 				}
 			}
 		
-		throw ParseException( "Malformed JSON" );
+		throw ParseException( "Malformed JSON", input.lineCount );
 		}
 	
 	//-----------------------------------------------------------------------------------------//
