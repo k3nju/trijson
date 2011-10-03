@@ -24,6 +24,11 @@ namespace trijson
 			inline size_t GetRemainingSize(){ return end - cur; };
 			inline size_t GetConsumedSize(){ return cur - begin; };
 			inline void Forward( size_t s ){ cur +=s; };
+			inline void Print()
+				{
+				for( size_t i = 0; i < GetRemainingSize(); ++i )
+					printf( "%c", *( cur + i ) );
+				}
 
 			const char *begin;
 			const char *end;

@@ -188,8 +188,6 @@ TEST( TypeTest, ObjectTest )
 	EXPECT_EQ( f, false );
 	}
 	}
-
-	puts( object.Dump().c_str() );
 	}
 
 int main( int argc, char **argv )

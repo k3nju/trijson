@@ -93,6 +93,8 @@ namespace trijson
 							}
 						else
 							{
+							printf( "len : %n\n", input.GetRemainingSize() );
+							input.Print();
 							input.Forward( 1 );
 							if( input.GetRemainingSize() < 4 )
 								throw ParseException( "Insufficient 4-hex-digits", input.lineCount );
@@ -123,6 +125,7 @@ namespace trijson
 							if( l == 0 )
 								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
 							str.append( (char*)buf, l );
+							printf( "%x\n", l );
 							}
 						}
 					else if( *input.cur == '"' )
