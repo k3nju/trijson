@@ -150,13 +150,25 @@ namespace trijson
 				
 				while( input.SkipWhiteSpace() )
 					{
+					if( *input.cur == ']' )
+						{
+						++input.cur;
+						break;
+						}
+					
 					array.push_back( ParseImpl( input ) );
 					if( input.SkipWhiteSpace() == false )
 						throw ParseException( "Insufficient array", input.lineCount );
-					if( *input.cur == ',' && ++input.cur )
+					if( *input.cur == ',' )
+						{
+						++input.cur;
 						continue;
-					else if( *input.cur == ']' && ++input.cur )
+						}
+					else if( *input.cur == ']' )
+						{
+						++input.cur;
 						break;
+						}
 					else
 						throw ParseException( "Malformed array", input.lineCount );
 					}
@@ -171,6 +183,11 @@ namespace trijson
 				
 				while( input.SkipWhiteSpace() )
 					{
+					if( *input.cur == '}' )
+						{
+						++input.cur;
+						break;
+						}
 					type::value_ptr_t k = ParseImpl( input );
 					if( k->GetType() != type::string_type )
 						throw ParseException( "Key type is not string", input.lineCount );
@@ -190,9 +207,15 @@ namespace trijson
 					if( input.SkipWhiteSpace() == false )
 						throw ParseException( "Insufficient object", input.lineCount );
 					if( *input.cur == ',' )
+						{
+						++input.cur;
 						continue;
+						}
 					if( *input.cur == '}' )
+						{
+						++input.cur;
 						break;
+						}
 					}
 
 				return type::object_value_ptr_t( new type::ObjectValue( object ) );
