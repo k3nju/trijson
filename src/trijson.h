@@ -93,7 +93,7 @@ namespace trijson
 							}
 						else
 							{
-							printf( "len : %n\n", input.GetRemainingSize() );
+							printf( "parse start len : %d\n", input.GetRemainingSize() );
 							input.Print();
 							input.Forward( 1 );
 							if( input.GetRemainingSize() < 4 )
@@ -125,7 +125,8 @@ namespace trijson
 							if( l == 0 )
 								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
 							str.append( (char*)buf, l );
-							printf( "%x\n", l );
+							printf( "parse end %x\n", l );
+							printf( "is valid %d\n", input.IsValid() );
 							}
 						}
 					else if( *input.cur == '"' )
