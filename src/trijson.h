@@ -69,6 +69,9 @@ namespace trijson
 				
 				while( input.IsValid() )
 					{
+					printf( "top parse start. remain : %d\n", input.GetRemainingSize() );
+					input.Print();
+					
 					if( 0x00 <= *input.cur && *input.cur <= 0x1f )
 						throw ParseException( "Malformed string. Insufficient string value", input.lineCount );
 					
@@ -93,7 +96,7 @@ namespace trijson
 							}
 						else
 							{
-							printf( "parse start len : %d\n", input.GetRemainingSize() );
+							printf( "parse start. remain : %d\n", input.GetRemainingSize() );
 							input.Print();
 							input.Forward( 1 );
 							if( input.GetRemainingSize() < 4 )
@@ -107,6 +110,7 @@ namespace trijson
 							
 							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
 								{
+								puts( "processing surrogate pair" );
 								uint32_t second = 0;
 								if( StrToUint32( input.cur, 4, &second ) != 4 ||
 									!( 0xdc00 <= second && second <= 0xdfff ) )
@@ -121,12 +125,14 @@ namespace trijson
 								throw ParseException( "Invalid UTF16 2nd surrogate pair range appeared at first", input.lineCount );
 
 							uint8_t buf[4];
+							printf( "codepoint : %x\n", codepoint );
 							size_t l = EncodeFromUTF16ToUTF8( codepoint, buf );
 							if( l == 0 )
 								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
 							str.append( (char*)buf, l );
-							printf( "parse end %x\n", l );
-							printf( "is valid %d\n", input.IsValid() );
+							printf( "parsed : %d\n", l );
+							printf( "remain : %d\n", input.GetRemainingSize() );
+							printf( "is valid : %d\n", input.IsValid() );
 							}
 						}
 					else if( *input.cur == '"' )

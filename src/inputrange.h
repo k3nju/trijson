@@ -28,6 +28,7 @@ namespace trijson
 				{
 				for( size_t i = 0; i < GetRemainingSize(); ++i )
 					printf( "%c", *( cur + i ) );
+				printf( "\n" );
 				}
 
 			const char *begin;
