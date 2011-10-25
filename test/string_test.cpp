@@ -69,6 +69,11 @@ bool Test( const char *srcFile, const char *cmpFile )
 
 	EXPECT_EQ( consumed, srcSize );
 	EXPECT_EQ( s.length(), cmpSize );
+	for( int i = 0; i < s.size(); ++i )
+		{
+		printf( "%02x", (unsigned char)*( s.c_str() + i ) );
+		}
+	puts( "" );
 	EXPECT_EQ( memcmp( s.c_str(), cmpBuf, cmpSize ), 0 );
 
 	return true;

@@ -69,9 +69,6 @@ namespace trijson
 				
 				while( input.IsValid() )
 					{
-					printf( "top parse start. remain : %d\n", input.GetRemainingSize() );
-					input.Print();
-					
 					if( 0x00 <= *input.cur && *input.cur <= 0x1f )
 						throw ParseException( "Malformed string. Insufficient string value", input.lineCount );
 					
@@ -87,18 +84,19 @@ namespace trijson
 							if( ParseEscapeString( *input.cur, c ) == false )
 								throw ParseException( "Malformed escape string", input.lineCount );
 
+							// copy from copyStart to current - 1.
 							const char *copyEnd = input.cur - 1;
 							if( copyEnd - copyStart > 0 )
 								str.append( copyStart, copyEnd - copyStart );
+							// push current char.
 							str.push_back( c );
 
-							copyStart = input.cur + 1;
+							// increment current position and set new copyStart.
+							copyStart = ++input.cur;
 							}
 						else
 							{
-							printf( "parse start. remain : %d\n", input.GetRemainingSize() );
-							input.Print();
-							input.Forward( 1 );
+							++input.cur;
 							if( input.GetRemainingSize() < 4 )
 								throw ParseException( "Insufficient 4-hex-digits", input.lineCount );
 
@@ -110,7 +108,6 @@ namespace trijson
 							
 							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
 								{
-								puts( "processing surrogate pair" );
 								uint32_t second = 0;
 								if( StrToUint32( input.cur, 4, &second ) != 4 ||
 									!( 0xdc00 <= second && second <= 0xdfff ) )
@@ -130,9 +127,8 @@ namespace trijson
 							if( l == 0 )
 								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
 							str.append( (char*)buf, l );
-							printf( "parsed : %d\n", l );
-							printf( "remain : %d\n", input.GetRemainingSize() );
-							printf( "is valid : %d\n", input.IsValid() );
+							
+							copyStart = input.cur;
 							}
 						}
 					else if( *input.cur == '"' )
@@ -140,11 +136,13 @@ namespace trijson
 						if( input.cur - copyStart > 0 )
 							str.append( copyStart, input.cur - copyStart );
 						++input.cur; 
-						
+
 						return type::string_value_ptr_t( new type::StringValue( str ) );
 						}
-
-					++input.cur;
+					else
+						{
+						++input.cur;
+						}
 					}
 
 				throw ParseException( "Insufficient string", input.lineCount );
