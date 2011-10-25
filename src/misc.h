@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include <string>
+#include <string.h>
 #include <stdint.h>
 
 namespace trijson
@@ -88,20 +88,20 @@ namespace trijson
 		else if( in < 0x800 )
 			{
 			out[0] = 0xc0 | AS_UINT8( in >> 0x06 );
-			out[1] = 0x80 | AS_UINT8( in & 0x3f );
+			out[1] = 0x80 | AS_UINT8( in & 0x7f );
 			ret = 2;
 			}
 		else if( in < 0x10000 )
 			{
-			out[0] = 0xe0 | AS_UINT8( in >> 0x0b );
-			out[1] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x3f );
+			out[0] = 0xe0 | AS_UINT8( in >> 0x0c );
+			out[1] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x7f );
 			out[2] = 0x80 | AS_UINT8( in & 0x3f );
 			ret = 3;
 			}
 		else if( in < 0x10ffff )
 			{
 			out[0] = 0xf0 | AS_UINT8( in >> 0x12 );
-			out[1] = 0x80 | AS_UINT8( ( in >> 0x0b ) & 0x3f );
+			out[1] = 0x80 | AS_UINT8( ( in >> 0x0c ) & 0x3f );
 			out[2] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x3f );
 			out[3] = 0x80 | AS_UINT8( in & 0x3f );
 			ret = 4;

@@ -122,7 +122,6 @@ namespace trijson
 								throw ParseException( "Invalid UTF16 2nd surrogate pair range appeared at first", input.lineCount );
 
 							uint8_t buf[4];
-							printf( "codepoint : %x\n", codepoint );
 							size_t l = EncodeFromUTF16ToUTF8( codepoint, buf );
 							if( l == 0 )
 								throw ParseException( "Invalid UTF16 encoding", input.lineCount );
