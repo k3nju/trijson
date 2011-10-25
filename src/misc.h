@@ -82,25 +82,25 @@ namespace trijson
 		
 		if( in < 0x80 )
 			{
-			out[0] = AS_UINT8( in );
+			out[0] = AS_UINT8( in & 0x7f );
 			ret = 1;
 			}
 		else if( in < 0x800 )
 			{
-			out[0] = 0xc0 | AS_UINT8( in >> 0x06 );
-			out[1] = 0x80 | AS_UINT8( in & 0x7f );
+			out[0] = 0xc0 | AS_UINT8( ( in >> 0x06 ) & 0x1f );
+			out[1] = 0x80 | AS_UINT8( in & 0x3f );
 			ret = 2;
 			}
 		else if( in < 0x10000 )
 			{
-			out[0] = 0xe0 | AS_UINT8( in >> 0x0c );
+			out[0] = 0xe0 | AS_UINT8( ( in >> 0x0c ) & 0x0f );
 			out[1] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x7f );
 			out[2] = 0x80 | AS_UINT8( in & 0x3f );
 			ret = 3;
 			}
-		else if( in < 0x10ffff )
+		else if( in < 0x1fffff )
 			{
-			out[0] = 0xf0 | AS_UINT8( in >> 0x12 );
+			out[0] = 0xf0 | AS_UINT8( ( in >> 0x12 ) & 0x07 );
 			out[1] = 0x80 | AS_UINT8( ( in >> 0x0c ) & 0x3f );
 			out[2] = 0x80 | AS_UINT8( ( in >> 0x06 ) & 0x3f );
 			out[3] = 0x80 | AS_UINT8( in & 0x3f );

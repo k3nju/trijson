@@ -24,7 +24,7 @@ namespace trijson
 				{
 				if( input.GetRemainingSize() < 4 || *(uint32_t*)input.cur != *(uint32_t*)"null" )
 					throw ParseException( "Malformed JSON. Meaning null?", input.lineCount );
-
+				
 				input.Forward( 4 );
 				return type::null_value_ptr_t( new type::NullValue() );
 				}
@@ -108,6 +108,9 @@ namespace trijson
 							
 							if( 0x8d00 <= codepoint && codepoint <= 0xdbff )
 								{
+								if( input.GetRemainingSize() < 4 )
+									throw ParseException( "Insufficient 4-hex-digits", input.lineCount );
+								
 								uint32_t second = 0;
 								if( StrToUint32( input.cur, 4, &second ) != 4 ||
 									!( 0xdc00 <= second && second <= 0xdfff ) )
